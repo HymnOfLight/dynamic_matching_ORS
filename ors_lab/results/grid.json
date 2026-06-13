@@ -1,0 +1,1438 @@
+[
+  {
+    "n": 4,
+    "r": 2,
+    "ordered": false,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 4,
+    "r": 2,
+    "ordered": true,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 5,
+    "r": 2,
+    "ordered": false,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 5,
+    "r": 2,
+    "ordered": true,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 6,
+    "r": 2,
+    "ordered": false,
+    "value": 3,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 3,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 3,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 3,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      [
+        [
+          0,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      [
+        [
+          1,
+          4
+        ],
+        [
+          3,
+          5
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 6,
+    "r": 2,
+    "ordered": true,
+    "value": 3,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 3,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 3,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 3,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      [
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          5
+        ]
+      ],
+      [
+        [
+          2,
+          4
+        ],
+        [
+          3,
+          5
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 6,
+    "r": 3,
+    "ordered": false,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          5
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 6,
+    "r": 3,
+    "ordered": true,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          5
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 7,
+    "r": 2,
+    "ordered": false,
+    "value": 4,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 4,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 4,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 4,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      [
+        [
+          0,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      [
+        [
+          0,
+          6
+        ],
+        [
+          3,
+          5
+        ]
+      ],
+      [
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          6
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 7,
+    "r": 2,
+    "ordered": true,
+    "value": 5,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 5,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 5,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 5,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      [
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          5
+        ]
+      ],
+      [
+        [
+          0,
+          6
+        ],
+        [
+          2,
+          4
+        ]
+      ],
+      [
+        [
+          1,
+          6
+        ],
+        [
+          3,
+          5
+        ]
+      ],
+      [
+        [
+          2,
+          5
+        ],
+        [
+          3,
+          4
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 7,
+    "r": 3,
+    "ordered": false,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          5
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 7,
+    "r": 3,
+    "ordered": true,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          5
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 8,
+    "r": 2,
+    "ordered": false,
+    "value": 6,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 6,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 6,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 6,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      [
+        [
+          0,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      [
+        [
+          0,
+          6
+        ],
+        [
+          2,
+          7
+        ]
+      ],
+      [
+        [
+          1,
+          4
+        ],
+        [
+          3,
+          5
+        ]
+      ],
+      [
+        [
+          1,
+          6
+        ],
+        [
+          3,
+          7
+        ]
+      ],
+      [
+        [
+          4,
+          6
+        ],
+        [
+          5,
+          7
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 8,
+    "r": 2,
+    "ordered": true,
+    "value": 8,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "lower_bound",
+        "value": 8,
+        "note": "budget/time exhausted at t=9"
+      },
+      "sat": {
+        "status": "lower_bound",
+        "value": 8,
+        "note": "budget/time exhausted at t=9"
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 8,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      [
+        [
+          4,
+          6
+        ],
+        [
+          5,
+          7
+        ]
+      ],
+      [
+        [
+          1,
+          6
+        ],
+        [
+          3,
+          7
+        ]
+      ],
+      [
+        [
+          2,
+          6
+        ],
+        [
+          3,
+          5
+        ]
+      ],
+      [
+        [
+          0,
+          7
+        ],
+        [
+          1,
+          4
+        ]
+      ],
+      [
+        [
+          0,
+          5
+        ],
+        [
+          3,
+          4
+        ]
+      ],
+      [
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          4
+        ]
+      ],
+      [
+        [
+          0,
+          6
+        ],
+        [
+          2,
+          7
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 8,
+    "r": 3,
+    "ordered": false,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          5
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 8,
+    "r": 3,
+    "ordered": true,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          5
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 8,
+    "r": 4,
+    "ordered": false,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          6,
+          7
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 8,
+    "r": 4,
+    "ordered": true,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "search": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          6,
+          7
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 9,
+    "r": 2,
+    "ordered": false,
+    "value": 9,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "sat": {
+        "status": "lower_bound",
+        "value": 9,
+        "note": "budget/time exhausted at t=10"
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 9,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      [
+        [
+          0,
+          4
+        ],
+        [
+          6,
+          8
+        ]
+      ],
+      [
+        [
+          1,
+          8
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      [
+        [
+          0,
+          7
+        ],
+        [
+          2,
+          6
+        ]
+      ],
+      [
+        [
+          2,
+          4
+        ],
+        [
+          7,
+          8
+        ]
+      ],
+      [
+        [
+          1,
+          4
+        ],
+        [
+          5,
+          6
+        ]
+      ],
+      [
+        [
+          3,
+          4
+        ],
+        [
+          5,
+          7
+        ]
+      ],
+      [
+        [
+          1,
+          7
+        ],
+        [
+          3,
+          6
+        ]
+      ],
+      [
+        [
+          0,
+          5
+        ],
+        [
+          3,
+          8
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 9,
+    "r": 2,
+    "ordered": true,
+    "value": 11,
+    "exact": false,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "sat": {
+        "status": "lower_bound",
+        "value": 11,
+        "note": "budget/time exhausted at t=12"
+      },
+      "cpsat": {
+        "status": "lower_bound",
+        "value": 11,
+        "note": "budget/time exhausted at t=12"
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ]
+      ],
+      [
+        [
+          1,
+          6
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      [
+        [
+          0,
+          5
+        ],
+        [
+          2,
+          8
+        ]
+      ],
+      [
+        [
+          2,
+          4
+        ],
+        [
+          6,
+          8
+        ]
+      ],
+      [
+        [
+          2,
+          7
+        ],
+        [
+          3,
+          4
+        ]
+      ],
+      [
+        [
+          1,
+          7
+        ],
+        [
+          3,
+          5
+        ]
+      ],
+      [
+        [
+          0,
+          6
+        ],
+        [
+          1,
+          8
+        ]
+      ],
+      [
+        [
+          0,
+          4
+        ],
+        [
+          3,
+          8
+        ]
+      ],
+      [
+        [
+          1,
+          4
+        ],
+        [
+          6,
+          7
+        ]
+      ],
+      [
+        [
+          0,
+          7
+        ],
+        [
+          4,
+          5
+        ]
+      ],
+      [
+        [
+          3,
+          6
+        ],
+        [
+          7,
+          8
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 9,
+    "r": 3,
+    "ordered": false,
+    "value": 3,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "sat": {
+        "status": "exact",
+        "value": 3,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 3,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          5
+        ]
+      ],
+      [
+        [
+          1,
+          6
+        ],
+        [
+          3,
+          7
+        ],
+        [
+          5,
+          8
+        ]
+      ],
+      [
+        [
+          0,
+          7
+        ],
+        [
+          2,
+          8
+        ],
+        [
+          4,
+          6
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 9,
+    "r": 3,
+    "ordered": true,
+    "value": 3,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "sat": {
+        "status": "exact",
+        "value": 3,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 3,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          5
+        ]
+      ],
+      [
+        [
+          0,
+          8
+        ],
+        [
+          1,
+          6
+        ],
+        [
+          3,
+          7
+        ]
+      ],
+      [
+        [
+          2,
+          8
+        ],
+        [
+          4,
+          7
+        ],
+        [
+          5,
+          6
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 9,
+    "r": 4,
+    "ordered": false,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          6,
+          7
+        ]
+      ]
+    ],
+    "error": ""
+  },
+  {
+    "n": 9,
+    "r": 4,
+    "ordered": true,
+    "value": 1,
+    "exact": true,
+    "verified": true,
+    "agreement": true,
+    "methods": {
+      "sat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      },
+      "cpsat": {
+        "status": "exact",
+        "value": 1,
+        "note": ""
+      }
+    },
+    "witness": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          6,
+          7
+        ]
+      ]
+    ],
+    "error": ""
+  }
+]
