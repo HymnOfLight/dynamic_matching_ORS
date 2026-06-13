@@ -1,0 +1,76 @@
+{
+  "rows": [
+    {
+      "N": 8,
+      "lemma_lower_bound": 6,
+      "exact_D_N": 21,
+      "sublinear_budgets": {
+        "N_log2_N": 24,
+        "N_pow_1.5": 22
+      },
+      "D_over_NlogN": 0.88,
+      "D_over_N1p5": 0.95
+    },
+    {
+      "N": 16,
+      "lemma_lower_bound": 28,
+      "exact_D_N": 78,
+      "sublinear_budgets": {
+        "N_log2_N": 64,
+        "N_pow_1.5": 64
+      },
+      "D_over_NlogN": 1.22,
+      "D_over_N1p5": 1.22
+    },
+    {
+      "N": 32,
+      "lemma_lower_bound": 120,
+      "exact_D_N": 300,
+      "sublinear_budgets": {
+        "N_log2_N": 160,
+        "N_pow_1.5": 181
+      },
+      "D_over_NlogN": 1.88,
+      "D_over_N1p5": 1.66
+    },
+    {
+      "N": 64,
+      "lemma_lower_bound": 496,
+      "exact_D_N": 1176,
+      "sublinear_budgets": {
+        "N_log2_N": 384,
+        "N_pow_1.5": 512
+      },
+      "D_over_NlogN": 3.06,
+      "D_over_N1p5": 2.3
+    },
+    {
+      "N": 128,
+      "lemma_lower_bound": 2016,
+      "exact_D_N": 4656,
+      "sublinear_budgets": {
+        "N_log2_N": 896,
+        "N_pow_1.5": 1448
+      },
+      "D_over_NlogN": 5.2,
+      "D_over_N1p5": 3.22
+    },
+    {
+      "N": 256,
+      "lemma_lower_bound": 8128,
+      "exact_D_N": 18528,
+      "sublinear_budgets": {
+        "N_log2_N": 2048,
+        "N_pow_1.5": 4096
+      },
+      "D_over_NlogN": 9.05,
+      "D_over_N1p5": 4.52
+    }
+  ],
+  "ratio_increasing_NlogN": true,
+  "ratio_increasing_N1p5": true,
+  "crossover_N_NlogN": 16,
+  "crossover_N_N1p5": 16,
+  "claim": "D(N)/budget grows without bound for any sublinear-in-N^2 per-call budget; beyond a small crossover N the forced deterministic probe cost exceeds the budget, so the oracle layer has no deterministic drop-in (plan Cor. 3.7)",
+  "elapsed_sec": 0.0
+}
