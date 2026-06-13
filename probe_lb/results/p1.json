@@ -1,0 +1,160 @@
+{
+  "rows": [
+    {
+      "n": 4,
+      "target_mu": 1,
+      "lemma_lower_bound": 1,
+      "exact_D_n": 6,
+      "min_over_orders": 6,
+      "probes_by_order": {
+        "row_major": 6,
+        "diagonal": 6,
+        "clique_first": 6,
+        "pseudo_random": 6,
+        "witness": 6
+      },
+      "witness_matches_D": true,
+      "all_orders_ge_lb": true,
+      "ok": true
+    },
+    {
+      "n": 5,
+      "target_mu": 2,
+      "lemma_lower_bound": 3,
+      "exact_D_n": 6,
+      "min_over_orders": 6,
+      "probes_by_order": {
+        "row_major": 7,
+        "diagonal": 8,
+        "clique_first": 7,
+        "pseudo_random": 8,
+        "witness": 6
+      },
+      "witness_matches_D": true,
+      "all_orders_ge_lb": true,
+      "ok": true
+    },
+    {
+      "n": 6,
+      "target_mu": 2,
+      "lemma_lower_bound": 3,
+      "exact_D_n": 10,
+      "min_over_orders": 10,
+      "probes_by_order": {
+        "row_major": 12,
+        "diagonal": 13,
+        "clique_first": 12,
+        "pseudo_random": 14,
+        "witness": 10
+      },
+      "witness_matches_D": true,
+      "all_orders_ge_lb": true,
+      "ok": true
+    },
+    {
+      "n": 7,
+      "target_mu": 2,
+      "lemma_lower_bound": 6,
+      "exact_D_n": 15,
+      "min_over_orders": 15,
+      "probes_by_order": {
+        "row_major": 18,
+        "diagonal": 19,
+        "clique_first": 18,
+        "pseudo_random": 20,
+        "witness": 15
+      },
+      "witness_matches_D": true,
+      "all_orders_ge_lb": true,
+      "ok": true
+    },
+    {
+      "n": 8,
+      "target_mu": 2,
+      "lemma_lower_bound": 6,
+      "exact_D_n": 21,
+      "min_over_orders": 21,
+      "probes_by_order": {
+        "row_major": 25,
+        "diagonal": 26,
+        "clique_first": 25,
+        "pseudo_random": 26,
+        "witness": 21
+      },
+      "witness_matches_D": true,
+      "all_orders_ge_lb": true,
+      "ok": true
+    },
+    {
+      "n": 9,
+      "target_mu": 3,
+      "lemma_lower_bound": 10,
+      "exact_D_n": 21,
+      "min_over_orders": 21,
+      "probes_by_order": {
+        "row_major": 26,
+        "diagonal": 31,
+        "clique_first": 26,
+        "pseudo_random": 32,
+        "witness": 21
+      },
+      "witness_matches_D": true,
+      "all_orders_ge_lb": true,
+      "ok": true
+    },
+    {
+      "n": 10,
+      "target_mu": 3,
+      "lemma_lower_bound": 10,
+      "exact_D_n": 28,
+      "min_over_orders": 28,
+      "probes_by_order": {
+        "row_major": 35,
+        "diagonal": 40,
+        "clique_first": 35,
+        "pseudo_random": 40,
+        "witness": 28
+      },
+      "witness_matches_D": true,
+      "all_orders_ge_lb": true,
+      "ok": true
+    },
+    {
+      "n": 11,
+      "target_mu": 3,
+      "lemma_lower_bound": 15,
+      "exact_D_n": 36,
+      "min_over_orders": 36,
+      "probes_by_order": {
+        "row_major": 45,
+        "diagonal": 50,
+        "clique_first": 45,
+        "pseudo_random": 53,
+        "witness": 36
+      },
+      "witness_matches_D": true,
+      "all_orders_ge_lb": true,
+      "ok": true
+    },
+    {
+      "n": 12,
+      "target_mu": 3,
+      "lemma_lower_bound": 15,
+      "exact_D_n": 45,
+      "min_over_orders": 45,
+      "probes_by_order": {
+        "row_major": 56,
+        "diagonal": 61,
+        "clique_first": 56,
+        "pseudo_random": 64,
+        "witness": 45
+      },
+      "witness_matches_D": true,
+      "all_orders_ge_lb": true,
+      "ok": true
+    }
+  ],
+  "all_ok": true,
+  "claim": "every deterministic probe order needs >= C(ceil(n/2),2) probes; the witness order achieves the exact D(n)",
+  "elapsed_sec": 0.55
+}

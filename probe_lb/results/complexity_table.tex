@@ -1,0 +1,23 @@
+\begin{table}[t]\centering\small
+\begin{tabular}{@{}cccccc@{}}
+\toprule
+$n$ & target $\mu$ & $\binom{\lceil n/2\rceil}{2}$ (lemma LB) & $D(n)$ (exact) & extremal & $D\ge$LB \\
+\midrule
+$4$ & $1$ & $1$ & $6$ & \textsf{empty} & $\checkmark$ \\
+$5$ & $2$ & $3$ & $6$ & \textsf{split} & $\checkmark$ \\
+$6$ & $2$ & $3$ & $10$ & \textsf{split} & $\checkmark$ \\
+$7$ & $2$ & $6$ & $15$ & \textsf{split} & $\checkmark$ \\
+$8$ & $2$ & $6$ & $21$ & \textsf{split} & $\checkmark$ \\
+$9$ & $3$ & $10$ & $21$ & \textsf{split} & $\checkmark$ \\
+$10$ & $3$ & $10$ & $28$ & \textsf{split} & $\checkmark$ \\
+$11$ & $3$ & $15$ & $36$ & \textsf{split} & $\checkmark$ \\
+$12$ & $3$ & $15$ & $45$ & \textsf{split} & $\checkmark$ \\
+$13$ & $4$ & $21$ & $45$ & \textsf{split} & $\checkmark$ \\
+$14$ & $4$ & $21$ & $55$ & \textsf{split} & $\checkmark$ \\
+$15$ & $4$ & $28$ & $66$ & \textsf{split} & $\checkmark$ \\
+$16$ & $4$ & $28$ & $78$ & \textsf{split} & $\checkmark$ \\
+\bottomrule
+\end{tabular}
+\caption{Exact deterministic probe complexity $D(n)$ of the $\mu{=}0$ vs $\mu{\ge}\lceil n/4\rceil$ gap, and the plan's lower bound.}
+\label{tab:detcomplexity}
+\end{table}

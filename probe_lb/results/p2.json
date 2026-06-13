@@ -1,0 +1,150 @@
+{
+  "rows": [
+    {
+      "n": 4,
+      "target_mu": 1,
+      "k_max_plant_mu": 0,
+      "lemma_lower_bound": 1,
+      "exact_D_n": 6,
+      "extremal_family": "empty",
+      "kept_edges": 0,
+      "verified_kept_mu": 0,
+      "ok": true
+    },
+    {
+      "n": 5,
+      "target_mu": 2,
+      "k_max_plant_mu": 1,
+      "lemma_lower_bound": 3,
+      "exact_D_n": 6,
+      "extremal_family": "split",
+      "kept_edges": 4,
+      "verified_kept_mu": 1,
+      "ok": true
+    },
+    {
+      "n": 6,
+      "target_mu": 2,
+      "k_max_plant_mu": 1,
+      "lemma_lower_bound": 3,
+      "exact_D_n": 10,
+      "extremal_family": "split",
+      "kept_edges": 5,
+      "verified_kept_mu": 1,
+      "ok": true
+    },
+    {
+      "n": 7,
+      "target_mu": 2,
+      "k_max_plant_mu": 1,
+      "lemma_lower_bound": 6,
+      "exact_D_n": 15,
+      "extremal_family": "split",
+      "kept_edges": 6,
+      "verified_kept_mu": 1,
+      "ok": true
+    },
+    {
+      "n": 8,
+      "target_mu": 2,
+      "k_max_plant_mu": 1,
+      "lemma_lower_bound": 6,
+      "exact_D_n": 21,
+      "extremal_family": "split",
+      "kept_edges": 7,
+      "verified_kept_mu": 1,
+      "ok": true
+    },
+    {
+      "n": 9,
+      "target_mu": 3,
+      "k_max_plant_mu": 2,
+      "lemma_lower_bound": 10,
+      "exact_D_n": 21,
+      "extremal_family": "split",
+      "kept_edges": 15,
+      "verified_kept_mu": 2,
+      "ok": true
+    },
+    {
+      "n": 10,
+      "target_mu": 3,
+      "k_max_plant_mu": 2,
+      "lemma_lower_bound": 10,
+      "exact_D_n": 28,
+      "extremal_family": "split",
+      "kept_edges": 17,
+      "verified_kept_mu": 2,
+      "ok": true
+    },
+    {
+      "n": 11,
+      "target_mu": 3,
+      "k_max_plant_mu": 2,
+      "lemma_lower_bound": 15,
+      "exact_D_n": 36,
+      "extremal_family": "split",
+      "kept_edges": 19,
+      "verified_kept_mu": 2,
+      "ok": true
+    },
+    {
+      "n": 12,
+      "target_mu": 3,
+      "k_max_plant_mu": 2,
+      "lemma_lower_bound": 15,
+      "exact_D_n": 45,
+      "extremal_family": "split",
+      "kept_edges": 21,
+      "verified_kept_mu": 2,
+      "ok": true
+    },
+    {
+      "n": 13,
+      "target_mu": 4,
+      "k_max_plant_mu": 3,
+      "lemma_lower_bound": 21,
+      "exact_D_n": 45,
+      "extremal_family": "split",
+      "kept_edges": 33,
+      "verified_kept_mu": 3,
+      "ok": true
+    },
+    {
+      "n": 14,
+      "target_mu": 4,
+      "k_max_plant_mu": 3,
+      "lemma_lower_bound": 21,
+      "exact_D_n": 55,
+      "extremal_family": "split",
+      "kept_edges": 36,
+      "verified_kept_mu": 3,
+      "ok": true
+    },
+    {
+      "n": 15,
+      "target_mu": 4,
+      "k_max_plant_mu": 3,
+      "lemma_lower_bound": 28,
+      "exact_D_n": 66,
+      "extremal_family": "split",
+      "kept_edges": 39,
+      "verified_kept_mu": 3,
+      "ok": true
+    },
+    {
+      "n": 16,
+      "target_mu": 4,
+      "k_max_plant_mu": 3,
+      "lemma_lower_bound": 28,
+      "exact_D_n": 78,
+      "extremal_family": "split",
+      "kept_edges": 42,
+      "verified_kept_mu": 3,
+      "ok": true
+    }
+  ],
+  "all_ok": true,
+  "formula": "D(n) = C(n,2) - ex(n; nu <= ceil(n/4)-1)  [Erdos--Gallai], >= C(ceil(n/2),2) [plan Lemma 3.6]",
+  "elapsed_sec": 0.08
+}

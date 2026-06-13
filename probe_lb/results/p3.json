@@ -1,0 +1,54 @@
+{
+  "n": 64,
+  "plant_matching_size": 16,
+  "target_mu": 16,
+  "trials": 400,
+  "curve": [
+    {
+      "budget": 32,
+      "budget_over_n": 0.5,
+      "detect_prob_plant": 0.25,
+      "false_positive_empty": 0.0
+    },
+    {
+      "budget": 64,
+      "budget_over_n": 1.0,
+      "detect_prob_plant": 0.4025,
+      "false_positive_empty": 0.0
+    },
+    {
+      "budget": 128,
+      "budget_over_n": 2.0,
+      "detect_prob_plant": 0.61,
+      "false_positive_empty": 0.0
+    },
+    {
+      "budget": 256,
+      "budget_over_n": 4.0,
+      "detect_prob_plant": 0.9175,
+      "false_positive_empty": 0.0
+    },
+    {
+      "budget": 512,
+      "budget_over_n": 8.0,
+      "detect_prob_plant": 0.98,
+      "false_positive_empty": 0.0
+    },
+    {
+      "budget": 1024,
+      "budget_over_n": 16.0,
+      "detect_prob_plant": 1.0,
+      "false_positive_empty": 0.0
+    },
+    {
+      "budget": 2048,
+      "budget_over_n": 32.0,
+      "detect_prob_plant": 1.0,
+      "false_positive_empty": 0.0
+    }
+  ],
+  "deterministic_lemma_lb": 496,
+  "deterministic_exact_D_n": 1176,
+  "note": "randomized detection on the sparse n/4-matching plant uses O(n log n) probes; deterministic certification needs Theta(n^2) (thresholds shown for reference). No false positives on the empty graph.",
+  "elapsed_sec": 0.57
+}
