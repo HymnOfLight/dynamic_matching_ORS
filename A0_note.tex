@@ -1,0 +1,334 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1.05in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,longtable,array,graphicx}
+\usepackage[expansion=false]{microtype}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+\graphicspath{{../results/}}
+
+% Status macros (same conventions as the execution-plan document).
+\newcommand{\statusV}{\textsf{\footnotesize[V]}}
+\newcommand{\statusM}{\textsf{\footnotesize[M]}}
+\newcommand{\statusP}{\textsf{\footnotesize[P]}}
+\newcommand{\statusS}{\textsf{\footnotesize[S]}}
+\newcommand{\statusC}{\textsf{\footnotesize[C]}}
+\newcommand{\statusX}{\textsf{\footnotesize[X]}}
+\newcommand{\ORS}{\mathsf{ORS}}
+\newcommand{\Otilde}{\widetilde{O}}
+\newtheorem{problem}{Problem}
+\newtheorem{remark}{Remark}
+
+\title{A Randomness Audit of the Polylog-/ORS-Update\\ Dynamic Matching Pipelines\\[2pt]
+{\large Task A0 technical note, v0.3 --- companion to the execution plan and to \texttt{audit\_lab}}}
+\author{Prepared for Ruifeng Cao}
+\date{June 11, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent Task A0 of the execution plan asks: for every random choice inside the
+pipelines BKSW23, Beh23, ABR24, BG24, AKK25, determine (i) what the randomness
+buys, (ii) the failure mode if it is fixed, and (iii) whether limited
+independence suffices. This note records read-through passes~1--2 (arXiv full texts
+where retrievable, June 2026), the resulting machine-readable audit table
+(Table~\ref{tab:audit}, auto-generated from \texttt{auditlib/audit\_table.py}),
+and the experimental evidence E1--E5. The headline structural finding: once
+the already-deterministic layers are inventoried (boosting is
+\emph{derandomized} by Tirodkar; greedy, ORS-charging, and bookkeeping carry
+no coins), the entire derandomization problem for the ORS-parameterized
+pipelines reduces to exactly \emph{three} modules --- the opportunistic
+sampling matcher, the Behnezhad-21 estimation interface, and randomized vertex
+sparsification. The estimation interface provably admits no deterministic
+drop-in (plan Lemma~3.6 / Cor.~3.7); the sampling matcher is a \emph{search
+problem with a promise}, outside that lower bound, and is therefore the
+genuinely open algorithmic target (refined Task A5). Status tags
+\statusV/\statusM/\statusP/\statusS\ follow the plan.
+\end{abstract}
+
+\section{Scope, sources, and verification status}\label{sec:scope}
+
+The five pipelines under audit and the sources actually read in this pass:
+
+\begin{center}\footnotesize
+\begin{tabular}{@{}llll@{}}
+\toprule
+Paper & arXiv source & Read in this pass & Residue (\statusM) \\
+\midrule
+BG24~\cite{BG24}   & 2404.06069v4 & \S1--\S4.4 (main algorithm, full) & \S5 (ORS upper bd.; not audit-relevant) \\
+AKK25~\cite{AKK25} & 2406.13573   & \S1--\S4.1 + Lem.~2.5 proof       & \S4.2 recursion, \S5 (overview only) \\
+BKSW23~\cite{BKSW23}& 2207.07438v3 & abstract; App.~A Prop.~A.1; JACM \S2/\S5 & \S5+ robustness lemmas \\
+Beh23~\cite{Beh23}  & 2207.07607v2 & abstract + \S1 technique overview & body (EDCS characterization etc.) \\
+ABR24~\cite{ABR24}  & 2307.08772v1 & \S1--\S4 (Thm~1: adaptive, worst-case \statusV) & \S5 dynamic details \\
+Beh21~\cite{Beh21}  & 2106.02942v3 & \S1--\S3 + \S5 statements & \S3.1--3.2 proof internals \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Also verified at statement level: Kiss'22 vertex sparsification in
+its operative form, BKSW23 Prop.~A.1 (``a randomized algorithm which for each
+update to $G$ makes an update to $O(\log^2 n/\varepsilon^3)$ contracted
+subgraphs, such that w.h.p.\ \dots''); Tirodkar's derandomization of the
+McGregor boosting framework as stated in AKK25 (Prop.~2.2); and
+\cite{ACK19} Thm.~6 ($\Omega(n^2)$ queries to \emph{find} a maximal
+matching, even randomized). Remaining \statusM\ residue: BDHSS19/Sol16
+maintenance internals, BKSW23 \S5+ robustness lemmas, Kis22 full internals.
+
+\begin{remark}[Version numbering]
+AKK25 cites ``[BG24, Lemma 9]'' and ``[BG24, Lemma 14]''. In the v4 text
+those statements are \emph{Lemma 7} (RandomSampling) and \emph{Lemma 11}
+($\sum_i 1/d_i \le O(\alpha^{-2}\,\ORS_n(r(1{-}\alpha))\log n)$). All BG24
+references below are to v4.
+\end{remark}
+
+\section{Pipeline anatomy: where the coins actually live}\label{sec:anatomy}
+
+Read-through pass 1 supports the following layered decomposition. The
+right-hand column is the verified location of the claim.
+
+\begin{center}\footnotesize
+\begin{tabular}{@{}p{0.30\textwidth}cp{0.40\textwidth}@{}}
+\toprule
+Layer & Coins? & Verified location \\
+\midrule
+Approximation boosting (McGregor framework) & \textbf{no} & AKK25 Prop.~2.2: ``de-randomized in [Tir18]'' \\
+Greedy matching on explicit edge lists & no & AKK25 Fact~2.1; BG24 \textsc{GreedyMatching} (\S4.1) \\
+ORS charging / amortization & no & BG24 Lem.~11; AKK25 Lem.~2.5 (its probabilistic method is \emph{analysis-only}) \\
+Certificate / batch bookkeeping ($H_{\mathrm{cert}}$; $G_{\mathrm{old}},G_{\mathrm{batch}},G_{\mathrm{match}}$) & no & BG24 Alg.~2; AKK25 Alg.~2 + Fig.~1 \\
+Bounded-degree $(1+\varepsilon)$ maintenance and the periodic-recomputation paradigm (Gupta--Peng) & no & deterministic; BLM20 Lem.~6.1; BKSW23 JACM \S2 \\
+\midrule
+Opportunistic sampling matcher & \textbf{yes} & BG24 Alg.~1/Lem.~7 + Claim~8; AKK25 Alg.~1/Lem.~3.1 + Claims~3.3--3.4 \\
+Sublinear size-estimation interface (Beh21) & \textbf{yes} & BG24 Prop.~4; AKK25 Prop.~2.3; BKSW23 abstract (white-box 2nd pass); Beh23 \S1; ABR24 \S1 \\
+Random ranks / RGMM (inside Beh21; phase-1 of Beh23/ABR24) & \textbf{yes} & ABR24 \S1: maximal matching ``using the fast algorithms of [BGS, Sol16, BDHSS19]'' \\
+Vertex sparsification (additive$\to$multiplicative) & \textbf{yes} & BKSW23 Prop.~A.1 ($O(\log^2 n/\varepsilon^3)$ random contracted subgraphs, whp); AKK25 Prop.~2.4; BG24 Prop.~5; Beh23 \S1 \\
+Adaptivity wrapper (fresh coins per rebuild; low-sensitivity outputs) & \textbf{yes} & BKSW23 abstract; BG24 \S3 + Alg.~2 ll.~17--20 + Lem.~9; AKK25 Result~1 + Problem~1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Two consequences, both load-bearing for WS-A:
+
+\begin{enumerate}
+\item \textbf{The deterministic frontier has exactly three modules.}
+Everything above the midrule needs no derandomization. What remains is:
+(a)~the opportunistic sampler (rows R4/R5 of Table~\ref{tab:audit});
+(b)~the Beh21 estimation interface (R1/R2); (c)~vertex sparsification (R7).
+\item \textbf{BG24's coins are narrower than the plan's v0.1 audit assumed.}
+The ORS-epoch amortization itself (Lemma~11, $H_{\mathrm{cert}}$) is
+deterministic combinatorics; the randomness of BG24 lives \emph{only} in
+Lemma~7's sampling, plus the R1/R7 interfaces and the per-rebuild freshness.
+This sharpens plan row R4 accordingly.
+\end{enumerate}
+
+\section{The audit table}\label{sec:table}
+
+Table~\ref{tab:audit} is generated from the machine-readable source
+(\texttt{auditlib/audit\_table.py}) by \texttt{run\_all.py}; the
+\texttt{.tex} fragment below is \texttt{results/audit\_table.tex} verbatim.
+
+\input{../results/audit_table.tex}
+
+\section{The deterministic frontier, refined}\label{sec:frontier}
+
+\paragraph{Module (b) is closed at the interface.} The estimation interface
+consumes the kernel/contracted/leftover graph \emph{only through probes}
+(adjacency-matrix queries in BG24 Prop.~4 / AKK25 Prop.~2.3). Plan
+Lemma~3.6 shows that any \emph{deterministic} adaptive probe algorithm
+distinguishing $\mu=0$ from $\mu\ge n/4$ needs more than
+$\binom{\lceil n/2\rceil}{2}-1$ probes, against $\Otilde(n)$ randomized
+(Prop.~2.3); plan Cor.~3.7 concludes there is no deterministic drop-in for
+this layer, and experiment E5 (\S\ref{sec:experiments}) realizes the
+adversary constructively. Derandomization must therefore \emph{replace} the
+interface with maintained deterministic summaries (plan Tasks A1--A3), not
+simulate it.
+
+\paragraph{Module (a) is open --- and is now a precise target.} The
+opportunistic sampler solves a \emph{search problem with a promise}:
+
+\begin{problem}[Det-Opportunistic-Matching; refined Task A5 target]
+\label{prob:detopp}
+Given adjacency-matrix (BG24) or adjacency-list (AKK25) access to $G$, a set
+$U\subseteq V$ with the promise $\mu(G[U])\ge\delta n$, and $\gamma<1/6$:
+deterministically output a matching $M\subseteq G[U]$ with
+$|M|\ge\gamma\delta n$ in time
+$\Otilde\!\big(m\cdot n^{O(\gamma)}/\Delta_{\mathrm{IN}}(M)\big)$
+(AKK25 shape; $\Otilde(n^{2+O(\gamma)}/d_{\mathrm{avg}})$ for the BG24
+shape), where $\Delta_{\mathrm{IN}}(M)$ is the maximum degree of
+$G[V(M)]$.
+\end{problem}
+
+\noindent Three observations delimit Problem~\ref{prob:detopp}:
+(1)~it is \emph{not} covered by plan Lemma~3.6 --- that bound is for a
+\emph{decision} task with no promise, whereas here a large matching is
+promised to exist and the runtime is \emph{allowed} to degrade to
+$\Otilde(m)$ exactly when the output is near-induced
+($\Delta_{\mathrm{IN}}=O(1)$); (2)~the worst case $\Omega(m)$ is necessary
+even for randomized algorithms (AKK25 quote ACK19), so only the
+$d$-adaptivity needs replication; (3)~the randomized solutions get
+$d$-adaptivity from one Chernoff-plus-union-bound argument (BG24 Claim~8;
+AKK25 Claim~3.4 ``residual sparsity''), which suggests two deterministic
+routes worth pricing in WS-A: degree-bucketed exhaustive scanning with a
+potential-function charging in place of Claim~8, and expander/disperser-based
+sample schedules (plan Task A4 \statusC). If Problem~\ref{prob:detopp} is
+solved in the BG24 shape, the remaining obstacles to a deterministic
+$\Otilde(\sqrt{n^{1+\varepsilon}\ORS})$ bound are exactly modules (b), (c)
+--- this is the concrete content of plan Task A5's expectation that the
+deterministic route lands at the BG24 shape first.
+
+\paragraph{Related separations (prior-art check for the C1 note).}
+Two published results already separate determinism from randomness for the
+\emph{finding} task: Assadi--Solomon~\cite{AS19} (Thm.~3: deterministic
+$\Omega(n^2)$ vs.\ randomized $\Otilde(n\beta)$ for finding a maximal
+matching on adjacency-array graphs of neighborhood independence $\beta=2$)
+and \cite{ACK19} (Thm.~6: finding a maximal matching needs $\Omega(n^2)$
+queries even randomized). Plan Lemma~3.6 is a different statement ---
+adjacency-\emph{matrix} probes, size-\emph{estimation} (where randomized is
+$\Otilde(n)$~\cite{Beh21}, unlike finding), explicit clique-coverage
+threshold, pipeline corollary --- but the C1 note must cite both prominently
+and scope its novelty accordingly; the plan (v1.1, Task C1(a)) now records
+this.
+
+\paragraph{Limited independence: a verified obstruction (Task A4).}
+Beh21's locality bound (Thm.~3.5: $\mathbb{E}[T(v,\pi)]=O(\bar d\log n)$
+over uniform $v$ \emph{and} uniform $\pi$) is proved by the charging map
+$\phi(\pi,\vec P)$ of Lemma~3.10, which rotates ranks along query paths ---
+a bijection of the \emph{full} symmetric group. $k$-wise independent rank
+families are not closed under these rotations, so the analysis does not
+transfer to limited independence as-is. Experiment E3 nonetheless finds even
+$2$-wise ranks empirically indistinguishable from full independence on
+oblivious instances: Task A4 now has both a precise technical obstacle and an
+experimental signal that the obstacle may be an artifact of the proof.
+A second nuance (ABR24 \S2): in ABR24 the random order is additionally
+load-bearing for the \emph{approximation} analysis of the $b$-matching
+(even-spread-of-copies argument), not only for locality --- a derandomization
+must replace that too.
+
+\paragraph{A deterministic data point (ABR24 Thm.~2).} ABR24's two-pass
+semi-streaming $(2-\sqrt2-\varepsilon)$-approximation is
+\emph{deterministic}: the combinatorial core (maximal matching +
+duplicate-free $b$-matching + blossom-inequality analysis) needs no coins
+when the edges can be read in passes. The dynamic version's randomness is
+forced purely by the probe access model --- exactly the localization that
+Cor.~3.7 predicts.
+
+\paragraph{Module (c).} Vertex sparsification (R7) is the same
+plant-against-a-known-seed pattern one level up: a fixed contraction
+partition can be defeated by an adversary routing the matching across
+collision classes. Its operative statement is now pinned (BKSW23 Prop.~A.1:
+$O(\log^2 n/\varepsilon^3)$ random contracted subgraphs per update, whp);
+deterministic replacement candidates are degree-based (non-contractive)
+vertex reductions.
+
+\section{Experimental evidence (package \texttt{audit\_lab})}\label{sec:experiments}
+
+All numbers: full scale, seed 20260611; reproduce with
+\texttt{python3 run\_all.py --scale full}; tests T1--T6 cross-validate every
+measured quantity (Blossom vs.\ bitmask DP; local oracle vs.\ global greedy;
+construction validity). Mapping E$\to$rows is in Table~\ref{tab:audit}.
+
+\begin{itemize}
+\item \textbf{E1 (R1, what sampling buys).} $n{=}4000$, $\bar d{=}5$:
+vertex-sampling estimate of $|\mathrm{RGMM}|$ has mean error
+$0.0024\,n$ at $s{=}6400$ samples (scaling $\propto 1/\sqrt s$,
+Fig.~\ref{fig:e1}), at $0.8$ oracle evaluations per vertex query;
+Blossom-checked $|\mathrm{MM}|/\mu\in[0.805,1]$.
+\item \textbf{E2 (R2, fixed ranks, locality).} On a rank-decreasing path
+with $m{=}64{,}000$ edges, \emph{one} oracle query costs exactly $m$
+evaluations; fully random ranks: mean $1.8$ (Fig.~\ref{fig:e2}).
+\item \textbf{E3 (R2/A4, limited independence).} $k$-wise ranks with
+$k\in\{2,3,4,8\}$ empirically match full independence in accuracy
+(err$/n$: $0.0051$ vs.\ $0.0051$) and locality on oblivious instances.
+Empirical only; consistent with the $\Theta(\log n)$-wise sufficiency
+conjecture of rows R4/R5 \statusS.
+\item \textbf{E4 (R2 dynamic).} Head-edge toggling on a $8000$-edge path:
+fixed-rank greedy suffers $8000$ recourse per update (full flip);
+random ranks, same oblivious updates: mean $1.20$ ($6667\times$).
+Supports plan Task A3(b).
+\item \textbf{E5 (R1/R4/R7, fixed samples; Lemma 3.6 companion).}
+$n{=}96$: against a fixed pseudorandom probe set, the constructive
+adversary plants $n/4$ matching edges the detector \emph{never} hits
+(0 hits at every budget), while fresh random probes with budget
+$B{=}1127=\binom{48}{2}{-}1$ detect with $p=0.993$. Extra finding: the
+pseudorandom family still fails at $B$ equal to $90\%$ of all pairs ---
+a fixed probe set is defeated by volume-free structure, and must instead
+clique-cover $\lceil n/2\rceil$ vertices; randomness is being purchased
+\emph{instead of} structured coverage.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{e1_concentration.png}
+\caption{E1: estimator concentration.}\label{fig:e1}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}\centering
+\includegraphics[width=\linewidth]{e2_locality.png}
+\caption{E2: locality, fixed vs.\ random ranks.}\label{fig:e2}
+\end{minipage}
+\end{figure}
+
+\section{Status and next steps}\label{sec:next}
+
+\textbf{Done (this pass).} Lemma-level locations for BG24 (complete for the
+algorithmic part) and AKK25 (\S1--4.1); abstract/overview-level verification
+for BKSW23, Beh23, ABR24; rows R1--R8 of Table~\ref{tab:audit}; experiments
+E1--E5 with cross-validation; the three-module frontier and
+Problem~\ref{prob:detopp}.
+
+\textbf{Done in pass 2.} (1)~Beh21 internals read (\S1--3): the
+rank-rotation obstruction for Task A4 is now precise; (2)~BKSW23
+Prop.~A.1 pinned (vertex sparsification, R7); (3)~ABR24 adversary model
+verified (Thm.~1: adaptive, worst-case) and \S1--4 read, yielding the
+RGMM-for-approximation nuance and the deterministic-streaming data point;
+(4)~\cite{ACK19} resolved (Thm.~6) and \cite{AS19} prior art folded into
+the C1 scoping; (5)~the v0.3 table and these findings are folded into the
+plan document, re-issued as v1.1 (Appendix~A there).
+
+\textbf{Remaining (small).} BDHSS19/Sol16 maintenance internals (R2
+residue); BKSW23 \S5+ robustness lemmas (R3 residue); Kis22 full text
+(R7 residue --- operative form verified). These do not block WS-A start.
+
+\begin{thebibliography}{99}\footnotesize
+\bibitem{BKSW23} S.~Bhattacharya, P.~Kiss, T.~Saranurak, D.~Wajc.
+Dynamic matching with better-than-2 approximation in polylogarithmic update
+time. SODA 2023, pp.~100--128; J.~ACM 71(5):33, 2024. arXiv:2207.07438.
+\bibitem{Beh23} S.~Behnezhad. Dynamic algorithms for maximum matching size.
+SODA 2023, pp.~129--162. arXiv:2207.07607.
+\bibitem{ABR24} A.~Azarmehr, S.~Behnezhad, M.~Roghani. Fully dynamic
+matching: $(2-\sqrt2)$-approximation in polylog update time. SODA 2024,
+pp.~3040--3061. arXiv:2307.08772.
+\bibitem{BG24} S.~Behnezhad, A.~Ghafari. Fully dynamic matching and ordered
+Ruzsa--Szemer\'edi graphs. FOCS 2024, pp.~314--327. arXiv:2404.06069 (v4).
+\bibitem{AKK25} S.~Assadi, S.~Khanna, P.~Kiss. Improved bounds for fully
+dynamic matching via ordered Ruzsa--Szemer\'edi graphs. SODA 2025,
+pp.~2971--2990. arXiv:2406.13573.
+\bibitem{Beh21} S.~Behnezhad. Time-optimal sublinear algorithms for matching
+and vertex cover. FOCS 2021, pp.~873--884.
+\bibitem{Kis22} P.~Kiss. Improving update times of dynamic matching
+algorithms from amortized to worst case. ITCS 2022.
+\bibitem{Tir18} S.~Tirodkar. Deterministic algorithms for maximum matching
+on general graphs in the semi-streaming model. FSTTCS 2018.
+\bibitem{McG05} A.~McGregor. Finding graph matchings in data streams.
+APPROX--RANDOM 2005, pp.~170--181.
+\bibitem{ACK19} S.~Assadi, Y.~Chen, S.~Khanna. Sublinear algorithms for
+$(\Delta+1)$ vertex coloring. SODA 2019, pp.~767--786. (Thm.~6: finding a
+maximal matching needs $\Omega(n^2)$ queries, even randomized; quoted in
+AKK25 for the $\Omega(m)$ worst-case necessity of its Lemma~3.1.)
+\bibitem{AS19} S.~Assadi, S.~Solomon. When algorithms for maximal
+independent set and maximal matching run in sublinear time. ICALP 2019,
+17:1--17:17. (Thm.~3: deterministic $\Omega(n^2)$ for finding a maximal
+matching at neighborhood independence $\beta=2$.)
+\bibitem{GP13} M.~Gupta, R.~Peng. Fully dynamic $(1+\varepsilon)$-approximate
+matchings. FOCS 2013, pp.~548--557.
+\bibitem{BLM20} S.~Behnezhad, J.~{\L}\k{a}cki, V.~Mirrokni. Fully dynamic
+matching: beating 2-approximation in $\Delta^{\varepsilon}$ update time.
+SODA 2020, pp.~2492--2508.
+\bibitem{Plan} R.~Cao (prep.). Optimal approximation for fully dynamic
+matching and ordered Ruzsa--Szemer\'edi graphs: a feasibility-checked
+execution plan. Working document, June 2026 (Lemma~3.6, Cor.~3.7,
+Tasks A0--A5).
+\end{thebibliography}
+
+\end{document}

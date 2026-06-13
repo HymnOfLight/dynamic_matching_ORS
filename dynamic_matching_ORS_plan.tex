@@ -1,0 +1,1446 @@
+\documentclass[11pt]{article}
+
+% ---------------------------------------------------------------
+%  Optimal Approximation for Fully Dynamic Matching and
+%  Ordered Ruzsa--Szemeredi Graphs:
+%  A Feasibility-Checked Research Execution Plan
+%
+%  Prepared for: Ruifeng Cao
+%  Date: June 10, 2026
+%
+%  Citation policy used in this document:
+%    [V]  Verified against the published source / arXiv during the
+%         preparation of this plan (June 2026 web verification pass).
+%    [M]  Cited from standard knowledge; canonical and very likely
+%         correct, but page numbers / exact venues should be
+%         re-checked before any submission (Phase 0, Task V.1).
+%  Every nontrivial claim in the document carries a status tag:
+%    (V) verified-from-source, (P) proven here, (S) proof sketch,
+%    (C) conjecture, (X) speculation.
+% ---------------------------------------------------------------
+
+\usepackage[margin=1.05in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[expansion=false]{microtype}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!50!black]{hyperref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{hypothesis}[theorem]{Hypothesis}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{task}{Task}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{observation}[theorem]{Observation}
+
+% claim-status tags
+\newcommand{\statusV}{\textcolor{green!45!black}{\textsf{[V]}}}
+\newcommand{\statusM}{\textcolor{orange!80!black}{\textsf{[M]}}}
+\newcommand{\statusP}{\textcolor{blue!60!black}{\textsf{[P]}}}
+\newcommand{\statusS}{\textcolor{violet}{\textsf{[S]}}}
+\newcommand{\statusC}{\textcolor{red!70!black}{\textsf{[C]}}}
+\newcommand{\statusX}{\textcolor{red!70!black}{\textsf{[X]}}}
+
+\newcommand{\ORS}{\mathrm{ORS}}
+\newcommand{\RS}{\mathrm{RS}}
+\newcommand{\poly}{\mathrm{poly}}
+\newcommand{\polylog}{\mathrm{polylog}}
+\newcommand{\OMv}{\mathsf{OMv}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\Otil}{\widetilde{O}}
+\newcommand{\mm}{\mu}
+
+\title{\bf Optimal Approximation for Fully Dynamic Matching and\\
+Ordered Ruzsa--Szemer\'edi Graphs:\\[2pt]
+\large A Feasibility-Checked Execution Plan for the Deterministic and\\
+Lower-Bound Frontiers}
+\author{Research plan prepared for Ruifeng Cao}
+\date{June 11, 2026 (v1.1; v1.0: June 10)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+Behnezhad and Ghafari (FOCS 2024) and Assadi, Khanna, and Kiss (SODA 2025)
+reduced fully dynamic $(1-\eps)$-approximate maximum matching to a purely
+combinatorial quantity, the density $\ORS(n)$ of \emph{ordered
+Ruzsa--Szemer\'edi graphs}: the current state of the art maintains the
+\emph{edges} of a $(1-\eps)$-approximate maximum matching in amortized
+$n^{o(1)}\cdot \ORS(n)$ update time, with high probability, against an
+adaptive adversary. Two questions remain open: \textbf{(OP-D)} can a
+\emph{deterministic} algorithm achieve the same guarantees, and
+\textbf{(OP-L)} can current lower-bound techniques (hidden permutations,
+RS-graph reductions, $\OMv$-based hardness) be extended to prove polynomial
+lower bounds against \emph{deterministic} dynamic algorithms?
+
+This document is an execution plan for attacking both questions. It
+contains: (i) a verified map of the 2024--2026 state of the art, including
+Pratt's SOSA 2026 proof that ordered and classical RS densities are
+polynomially equivalent, which collapses part of the design space;
+(ii) precise formalizations of OP-D and OP-L, including a correction of a
+common misreading of the SODA 2025 result (it improved the \emph{update
+time}, not the approximation ratio); (iii) several original structural
+observations, among them a fully proved $\Theta(n^2)$-vs-$\Otil(n)$
+deterministic/randomized separation for matching-size estimation in the
+adjacency-probe model, and a derived \emph{architectural barrier} showing
+that the entire randomized polylog-update pipeline
+(BKSW\,/\,Behnezhad\,/\,ABR\,/\,BG\,/\,AKK) has no deterministic drop-in
+replacement at its sublinear-oracle layer; (iv) an honest taxonomy of what
+kinds of deterministic lower bounds are achievable today versus blocked by
+known cell-probe barriers; and (v) four concrete workstreams with tasks,
+decision gates, fallback publishable units, a 9--12 month timeline, a risk
+register, and a claim-status appendix. All citations were re-verified
+against arXiv/DOI metadata in June 2026 except where explicitly tagged.
+\end{abstract}
+
+\tableofcontents
+
+% ===============================================================
+\section{Scope, reading of the open problem, and one correction}
+\label{sec:scope}
+% ===============================================================
+
+\subsection{The open problem as posed}
+
+The prompt poses, in the context of ``optimal approximation for fully
+dynamic matching and ordered Ruzsa--Szemer\'edi (ORS) graphs'':
+
+\begin{enumerate}[label=(\alph*),itemsep=2pt]
+\item \emph{Can deterministic algorithms achieve the same approximation
+guarantees} as the randomized ORS-based algorithms of Behnezhad--Ghafari
+\cite{BG24} and Assadi--Khanna--Kiss \cite{AKK25}?
+\item \emph{Can current lower-bound techniques (hidden permutations, RS
+graphs) be extended to prove polynomial communication lower bounds for
+deterministic algorithms in the dynamic setting?}
+\end{enumerate}
+
+We formalize these as Problems \ref{prob:OPD} (OP-D) and \ref{prob:OPL}
+(OP-L) in Section~\ref{sec:problems}, after fixing the model zoo in
+Section~\ref{sec:sota}; the distinctions between maintaining
+\emph{edges}, maintaining a \emph{size estimate}, and maintaining a
+\emph{witness} turn out to be essential to both questions, and several
+natural readings of (a) and (b) are either already resolved or provably
+hopeless with current technology, so the formalization step is not
+bureaucratic.
+
+\subsection{A correction to the premise \statusV}
+\label{sec:correction}
+
+The prompt states that Assadi--Khanna--Kiss (SODA 2025) ``used ordered RS
+graphs to significantly improve the \emph{approximation ratio} of fully
+dynamic matching.'' The verified record is slightly different, and the
+difference matters for what OP-D should ask:
+
+\begin{itemize}[itemsep=2pt]
+\item Behnezhad--Ghafari \cite{BG24} (FOCS 2024, pp.~314--327;
+arXiv:2404.06069) already achieve approximation ratio $1-\eps$ for every
+fixed $\eps>0$. They introduce $\ORS$ graphs and maintain the
+\emph{edges} of a $(1-\eps)$-approximate maximum matching in amortized
+update time
+$O\!\big(\sqrt{\,n^{1+O(\eps)}\cdot \ORS(n)\,}\big)$,
+with high probability, against an adaptive adversary.
+\item Assadi--Khanna--Kiss \cite{AKK25} (SODA 2025, pp.~2971--2990;
+arXiv:2406.13573) keep the same approximation ratio $1-\eps$ and the same
+adaptive-adversary guarantee but improve the \emph{update time} to
+amortized $n^{o(1)}\cdot \ORS(n)$, thereby reducing the dynamic problem
+\emph{entirely} to bounding the combinatorial quantity $\ORS(n)$.
+\end{itemize}
+
+So the ``optimal approximation'' in the title of this research direction
+is $1-\eps$, which both papers already attain (randomized); the open
+algorithmic frontier is (i) the update time as a function of $\ORS(n)$,
+(ii) the truth about $\ORS(n)$ itself, and (iii) determinism. OP-D below
+is phrased accordingly.
+
+\subsection{What changed in 2025--2026 and why it reshapes the plan \statusV}
+\label{sec:newdev}
+
+Two verified developments postdate the original formulation of this open
+problem and materially change the attack surface:
+
+\begin{enumerate}[itemsep=3pt]
+\item \textbf{Pratt (SOSA 2026): ordered $\approx$ unordered.}
+Pratt \cite{Pra26} (arXiv:2502.02455, DOI 10.1137/1.9781611978964.27)
+proves that if $\ORS(n)\ge \Omega(n^{c})$ for a fixed $c>0$, then for
+every fixed $\delta>0$ the \emph{classical} RS density at slightly smaller
+(still linear) matching size satisfies
+$\RS\big(n,\Theta_{\delta}(n)\big)\ge \Omega(n^{c(1-\delta)})$.
+Consequently the ordering relaxation does \emph{not} buy polynomial
+density, the question ``is $\ORS(n)=n^{o(1)}$ or $n^{1-o(1)}$?'' from
+\cite{BG24} reduces (in the polynomial regime) to the decades-old
+Ruzsa--Szemer\'edi question, and the AKK update time is, up to
+$n^{o(1)}$, governed by \emph{classical} RS density. For this plan, the
+consequence is that Workstream B (Section~\ref{sec:wsB}) should target RS
+and ORS jointly, and that ``find a denser \emph{ordered} construction''
+is no longer a promising shortcut to faster algorithms. (Exact parameter
+translation: Phase-0 Task~\ref{task:verify}.)
+\item \textbf{Bernstein--Bhattacharya--Kiss--Saranurak (STOC 2025):
+deterministic maximal matching in sublinear time.} \cite{BBKS25}
+(arXiv:2504.20780, DOI 10.1145/3717823.3718153) give a deterministic
+fully dynamic \emph{maximal} matching in amortized $\Otil(n^{8/9})$
+update time, breaking the long-standing $O(n)$ deterministic barrier on
+dense graphs, plus a randomized adaptive-adversary algorithm in
+$\Otil(n^{3/4})$. This confirms that (i) the deterministic frontier is
+active and the community considers it major, and (ii) even
+\emph{maximal} matching --- a $1/2$-approximation primitive ---
+currently costs deterministic $n^{8/9}$, which calibrates how far OP-D
+is from resolution and supplies the natural first stepping stone
+(target D1 below).
+\end{enumerate}
+
+\subsection{Deliverables of this plan}
+
+The plan is organized as: verified state of the art
+(Section~\ref{sec:sota}); formal problems, original observations, and a
+proved probe-model separation with its barrier corollary
+(Section~\ref{sec:problems}); four workstreams WS-A--WS-D with concrete
+tasks (Sections~\ref{sec:wsA}--\ref{sec:wsD}); timeline, decision gates,
+and fallback publishable units (Section~\ref{sec:timeline}); risk
+register (Section~\ref{sec:risks}); claim-status and notation appendices
+(Appendices~\ref{app:claims}--\ref{app:notation}).
+
+% ===============================================================
+\section{Verified state of the art (June 2026)}
+\label{sec:sota}
+% ===============================================================
+
+\subsection{Model zoo: what exactly is being maintained}
+\label{sec:models}
+
+Let $G=(V,E)$, $|V|=n$, $|E|=m$, undergo edge insertions and deletions;
+$\mm(G)$ denotes the maximum matching size. The literature mixes four
+distinct objectives, and conflating them produces false ``contradictions''
+between upper and lower bounds. We fix names:
+
+\begin{description}[itemsep=2pt]
+\item[\textsc{Edges}$(\eps)$:] maintain an explicit edge set $M\subseteq E$
+that is a matching with $|M|\ge (1-\eps)\mm(G)$ after every update.
+\item[\textsc{Size}$(\alpha)$ / \textsc{Size}$(\alpha,\beta n)$:] maintain
+a number $\hat{\mm}$ with $\alpha\,\mm(G)-\beta n \le \hat{\mm}\le \mm(G)$
+(multiplicative $\alpha$, optional additive slack $\beta n$).
+\item[\textsc{Frac}$(\alpha)$:] maintain a fractional matching of value at
+least $\alpha\,\mm(G)$ (or within $\alpha$ of the fractional optimum).
+\item[\textsc{Witness-VC}$(\alpha)$:] maintain an explicit vertex set that
+is an $\alpha$-approximate vertex cover.
+\end{description}
+
+Orthogonal axes: \emph{amortized vs.\ worst-case} update time;
+\emph{oblivious vs.\ adaptive} adversary; \emph{randomized (whp) vs.\
+deterministic}. One important calibration~\statusV: the ORS-based
+algorithms \cite{BG24,AKK25} are already robust to \emph{adaptive}
+adversaries, so OP-D is a pure determinism question --- the usual
+intermediate target ``upgrade oblivious to adaptive'' is unavailable as a
+stepping stone; the remaining gap between \cite{AKK25} and OP-D is
+exactly ``whp $\to$ always-correct, no coins.''
+
+\subsection{Ordered Ruzsa--Szemer\'edi graphs \statusV}
+\label{sec:ors}
+
+\begin{definition}[RS and ORS graphs; \cite{RS78,BG24}]
+\label{def:ors}
+A graph $G$ on $n$ vertices is an \emph{$\RS$ graph with parameters
+$(r,t)$} if its edge set can be partitioned into $t$ edge-disjoint
+\emph{induced} matchings $M_1,\dots,M_t$, each of size $r$. It is an
+\emph{ordered RS ($\ORS$) graph with parameters $(r,t)$} if there is an
+ordering $M_1,\dots,M_t$ of $t$ edge-disjoint matchings of size $r$ such
+that every $M_i$ is an induced matching in the subgraph
+$M_i\cup M_{i+1}\cup\dots\cup M_t$. Write $\RS(n,r)$, $\ORS(n,r)$ for the
+maximum such $t$, and $\RS(n)$, $\ORS(n)$ for the regime $r=\Theta(n)$
+(constant locality hidden in the $\Theta$, as in \cite{BG24}).
+\end{definition}
+
+Every RS graph is an ORS graph under any ordering, so
+$\ORS(n,r)\ge\RS(n,r)$. Verified facts:
+
+\begin{itemize}[itemsep=2pt]
+\item \emph{Lower bound (constructions).} $\RS(\,\cdot\,,\Theta(n))\ge
+n^{1/\Theta(\log\log n)}$, via Fischer, Lehman, Newman, Raskhodnikova,
+Rubinfeld, and Samorodnitsky \cite{FLNRRS02} (attribution per \cite{BG24});
+this is super-polylogarithmic but $n^{o(1)}$. Behrend-set-based
+constructions \cite{Beh46,RS78} give $n^{1-o(1)}$ induced matchings of
+size $n^{1-o(1)}$ (slightly sublinear $r$). \statusV\ (regime details:
+verify exact constants in Task~\ref{task:verify}).
+\item \emph{Upper bounds.} For $r=\Theta(n)$ no upper bound of the form
+$n^{1-\Omega(1)}$ is known: whether $\ORS(n)=n^{o(1)}$ or
+$\ORS(n)=n^{1-o(1)}$ is wide open \cite{BG24}. For $r$ very close to
+$n/2$ (e.g.\ $r\ge(1/4+\delta)n$ and stronger regimes) classical
+triangle-removal/regularity arguments force $t$ to be small;
+the precise $(r,t)$ frontier is scattered across the literature and is
+collected as Task~\ref{task:rs-table}. \statusM\ for the near-$n/2$
+regime.
+\item \emph{Equivalence.} Pratt \cite{Pra26}: polynomial $\ORS$ density
+implies polynomial $\RS$ density at linear matching size
+(Section~\ref{sec:newdev}); so in the polynomial regime, ordered and
+unordered densities coincide up to $n^{\delta}$ losses. \statusV
+\end{itemize}
+
+\subsection{Upper bounds for fully dynamic matching: verified table}
+\label{sec:ub-table}
+
+Throughout, ``det'' = deterministic, ``rand'' = randomized (whp),
+``adp'' = correct against adaptive adversaries, ``obl'' = oblivious
+adversary assumed. All rows verified against the cited source unless
+tagged \statusM.
+
+\medskip
+\noindent\textbf{(a) \textsc{Edges}$(\eps)$, i.e.\ $(1-\eps)$-approximate
+matching maintained explicitly.}
+\begin{center}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Update time (amortized unless noted) & Type & Source & Notes\\
+\midrule
+$O(\sqrt{m}\,\eps^{-2})$ (worst-case) & det & \cite{GP13} & FOCS'13, pp.~548--557\\
+$n/(\log^* n)^{\Omega(1)}$ & rand & \cite{ABKL23} & regularity-based \statusM\ (pages)\\
+$n/2^{\Omega(\sqrt{\log n})}$ (bipartite) & rand & \cite{Liu24}+\cite{LW17} & via online matrix-vector\\
+$O(\sqrt{n^{1+O(\eps)}\ORS(n)})$ & rand, adp & \cite{BG24} & FOCS'24, pp.~314--327\\
+$n^{o(1)}\cdot\ORS(n)$ & rand, adp & \cite{AKK25} & SODA'25, pp.~2971--2990\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Calibration \statusV: for approximation ratios below $2/3$
+(equivalently $\eps>1/3$), update time $n^{1/2+o(1)}$-type bounds follow
+from Bernstein--Stein \cite{BS16} ($3/2+\eps$ in $O(m^{1/4})$); for
+$\eps\le 1/3$ the best unconditional bound not parameterized by
+$\ORS$ is the $n/2^{\Omega(\sqrt{\log n})}$ of \cite{Liu24} (this
+calibration is stated in \cite{Pra26}).
+
+\medskip
+\noindent\textbf{(b) Maximal matching (a canonical $1/2$-approximation
+primitive).}
+\begin{center}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Update time & Type & Source & Notes\\
+\midrule
+$O(\sqrt{m})$ (worst-case) & det & \cite{NS13} & arXiv:1207.1277\\
+$\Otil(n^{8/9})$ & det & \cite{BBKS25} & STOC'25; first $o(n)$ det on dense $G$\\
+$O(\log n)$ & rand, obl & \cite{BGS11} & SICOMP'18 corrected version \statusM\\
+$O(1)$ & rand, obl & \cite{Sol16} & FOCS'16, pp.~325--334\\
+$\Otil(n^{3/4})$ & rand, adp & \cite{BBKS25} & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\medskip
+\noindent\textbf{(c) \textsc{Size} estimation and better-than-$1/2$
+ratios in $\polylog$ time (all randomized).}
+\begin{center}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Guarantee & Update time & Source & Notes\\
+\midrule
+\textsc{Size}$(1/2+\Omega(1))$ & $\polylog$ & \cite{Beh23} & SODA'23, pp.~129--162\\
+\textsc{Size}$(1+1/\sqrt2-\eps)^{-1}$ bip., $1.973^{-1}$ gen. & $\polylog$ wc, adp & \cite{BKSW23} & SODA'23 + JACM\\
+\textsc{Size}$(2-\sqrt2-\eps)$ general & $\polylog$ & \cite{ABR24} & SODA'24, pp.~3040--3061\\
+\textsc{Size}$(1-\eps)$ & $m^{1/2-\Omega_{\eps}(1)}$ & \cite{BKS23} & FOCS'23, arXiv:2302.05030\\
+\bottomrule
+\end{tabular}
+\end{center}
+Here $2-\sqrt2\approx 0.5857$; \cite{ABR24} also push to
+$(2-\sqrt2-\eps)$ for any fixed $\eps>0$ in $\polylog$ time. \statusV
+
+\medskip
+\noindent\textbf{(d) Deterministic landscape beyond maximal.}
+\begin{center}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Guarantee & Update time & Source & Notes\\
+\midrule
+\textsc{Edges}$(1/2-\eps)$ \emph{(i.e.\ $(2{+}\eps)$-apx)} & $\poly(\log n,1/\eps)$ & \cite{BHN16} & STOC'16, arXiv:1604.05765\\
+better-than-$2$ apx, bipartite & $O(n^{\gamma})$, any $\gamma>0$ & \cite{BHN16} & second result of the paper\\
+$(3/2+\eps)$-apx & $O(m^{1/4}\eps^{-2.5})$ & \cite{BS16} & SODA'16, pp.~692--711\\
+$(2+\eps)$-apx \textsc{Frac}+VC & $O(1)$ & \cite{BCH17} & IPCO'17\\
+det rounding of dyn.\ fractional & $\polylog$ overhead & \cite{BK21} & ICALP'21 \statusM\\
+EDCS maintenance, worst-case & $O(m^{1/4})$-type & \cite{GSSU22} & SOSA'22, pp.~12--23 \statusM\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Two verified summary points.} (i) No deterministic
+algorithm is known with $\polylog$ (or even $n^{o(1)}$) update time for
+\emph{any} constant-factor guarantee better than $(2+\eps)$, in any of
+the four objectives; the deterministic better-than-2 frontier is
+$O(n^{\gamma})$/$O(m^{1/4})$-type \cite{BHN16,BS16}. (ii) No
+deterministic algorithm with update time $o(\sqrt m)$ is known for
+\textsc{Edges}$(\eps)$ at small $\eps$; even matching Liu's randomized
+$n/2^{\Omega(\sqrt{\log n})}$ deterministically is open, because the
+underlying $\OMv$ algorithm of Larsen--Williams \cite{LW17} (SODA'17,
+pp.~2182--2189) is randomized (determinism status of subpolynomial-saving
+$\OMv$: verify in Task~\ref{task:verify}). \statusV/\statusM
+
+\subsection{Randomness audit of the ORS pipeline \statusV}
+\label{sec:audit}
+
+Where exactly do coins enter \cite{BG24,AKK25} and the $\polylog$
+\textsc{Size} algorithms? This audit drives Workstream A.
+
+\paragraph{Update (v1.1).} Task A0's read-through passes 1--2 are
+complete; the machine-readable audit table (v0.3, lemma-level
+locations, auto-generated by \texttt{audit\_lab}) is reproduced in
+Appendix~\ref{app:audit}, with the full technical discussion in the
+companion A0 note. Three sharpenings of the prose audit below
+\statusV{}: (i) BG24's coins live \emph{only} in its Lemma~7 sampling
+plus the estimator/sparsification interfaces --- the ORS charging
+(Lemma~11), certificate bookkeeping, and McGregor boosting
+(derandomized by Tirodkar, per AKK25 Prop.~2.2) are deterministic;
+(ii) the derandomization problem therefore reduces to exactly three
+modules (opportunistic sampler; Beh21 estimator interface; vertex
+sparsification); (iii) ABR24's Theorem~2 is a \emph{deterministic}
+two-pass streaming $(2-\sqrt2-\eps)$-approximation, so the
+combinatorial core is deterministic under pass access and the dynamic
+coins are forced by the probe access model alone.
+
+\begin{enumerate}[itemsep=2pt]
+\item \emph{Sublinear-time estimators as inner oracles.} The
+$\polylog$-update pipelines \cite{BKSW23,Beh23,ABR24} repeatedly invoke
+sublinear-time matching/size estimators --- most prominently random
+greedy maximal matching (RGMM) estimation in the style of Behnezhad
+\cite{Beh21} (FOCS'21, pp.~873--884) --- on implicitly represented
+(kernel/contracted/peeled) graphs accessed through adjacency probes.
+These estimators are Monte Carlo: per call they probe a sublinear number
+of adjacency entries and succeed whp.
+\item \emph{Random ranks/permutations.} RGMM correctness and locality
+analyses are driven by a uniformly random permutation of edges/vertices;
+adaptive-adversary robustness in \cite{BKSW23,AKK25} is obtained by
+re-randomizing and by outputting only low-sensitivity quantities (sizes),
+plus standard amplification.
+\item \emph{Sampling for sparsification/peeling.} \cite{BG24,AKK25} use
+random vertex/edge sampling inside the ORS-driven phase structure to
+bound the number of ``epochs'' by $\ORS$ density; failure probabilities
+are union-bounded over epochs.
+\end{enumerate}
+
+Consequence (formalized as Corollary~\ref{cor:barrier}): the pipeline's
+randomness is concentrated in a clean interface --- ``estimate
+$\mm$ of an implicitly represented graph from few probes'' --- and that
+interface is \emph{provably} impossible to implement deterministically
+in sublinear probes. Derandomizing the pipeline therefore cannot be a
+local substitution; it must change the architecture.
+
+\subsection{Lower-bound landscape (verified) and where determinism
+currently plays no role}
+\label{sec:lb-landscape}
+
+\begin{itemize}[itemsep=3pt]
+\item \emph{$\OMv$-conditional.} Henzinger--Krinninger--Nanongkai--%
+Saranurak \cite{HKNS15} (STOC'15, pp.~21--30): under the $\OMv$
+conjecture, many exact dynamic problems need $n^{1-o(1)}$ update time.
+Liu \cite{Liu24} (FOCS'24, pp.~228--243) proves \emph{equivalences}:
+maintaining a $(1+\eps)$-approximate \textsc{Witness-VC} in amortized
+$n^{1-c}\eps^{-C}$ time is possible iff $\OMv$ is false; maintaining
+$(1-\eps)$-approximate bipartite matching in $n^{1-c}$ iff a nontrivial
+``dynamic approximate $\OMv$'' algorithm exists. By K\"onig duality the
+\emph{value} of the minimum vertex cover equals $\mm$ in bipartite
+graphs, and value maintenance \emph{is} sublinearly possible
+\cite{BKS23}; the hardness is for \emph{witness} maintenance --- one
+more reason the model zoo of Section~\ref{sec:models} matters. \statusV\
+(exact quantifiers: Task~\ref{task:verify}.)
+\item \emph{Static sublinear (query) lower bounds, randomized.}
+Behnezhad--Roghani--Rubinstein \cite{BRR24} (STOC'24, arXiv:2406.08595):
+for every $\delta>0$ there is $\eps>0$ such that estimating $\mm$ within
+additive $\eps n$ requires $\Omega(n^{2-\delta})$ adjacency-list
+queries; near-matching upper bounds in $n^{2-\Omega_{\eps}(1)}$
+\cite{BKS23,BRRS23}. These already hold for randomized algorithms, so
+they cannot, by themselves, separate det from rand. \statusV
+\item \emph{Hidden permutations (the technique named in the prompt).}
+Assadi--Sundaresan \cite{AS23} (FOCS'23, pp.~909--932; arXiv:2310.05728)
+build \emph{permutation-hiding} graphs directly on RS graphs and prove
+that $(1-\eps)$-approximating bipartite matching in semi-streaming needs
+$\Omega\!\big(\log(1/\eps)/\log(1/\beta)\big)$ passes, where
+$n^{\beta}$ is the RS density available to the construction. This is a
+\emph{distributional} (hence randomized-robust) communication argument
+in a \emph{bounded-space} model. \statusV
+\item \emph{Dynamic streams.} Assadi--Khanna--Li--Yaroslavtsev
+\cite{AKLY16} show $n^{2-3\eps}$-space lower bounds for $n^{\eps}$%
+-approximation in dynamic streams --- again randomized-robust, and so
+strong already for randomized algorithms that there is little
+deterministic/randomized daylight left in that model. \statusM
+\item \emph{Cell-probe ceilings.} Unconditional cell-probe lower bounds
+for dynamic data structures top out around
+$\Omega((\log n/\log\log n)^2)$ (Larsen \cite{Lar12}); polynomial
+unconditional bounds are a notorious open frontier (P\u{a}tra\c{s}cu's
+multiphase program \cite{Pat10}, nondeterministic barriers
+\cite{CGL15}). Nothing here exploits determinism, and no known route
+gives polynomial \emph{deterministic-only} cell-probe bounds either.
+\statusM
+\end{itemize}
+
+\noindent\textbf{Reading for OP-L.} Every polynomial lower bound in this
+landscape is either conditional ($\OMv$-style), or lives in a restricted
+information model (streams, communication, query/probe), and \emph{all}
+of them are randomized-robust. There is, verifiably, no published
+polynomial lower bound anywhere in the dynamic-matching literature that
+applies to deterministic algorithms but not to randomized ones. That gap
+is exactly the opportunity --- and Section~\ref{sec:problems} shows it
+cannot be closed by ``extending'' the existing techniques unchanged.
+
+% ===============================================================
+\section{Formal problems and original structural observations}
+\label{sec:problems}
+% ===============================================================
+
+\subsection{The two problems, formalized}
+
+\begin{problem}[OP-D: determinism]\label{prob:OPD}
+Design a \emph{deterministic} fully dynamic algorithm that maintains the
+edges of a $(1-\eps)$-approximate maximum matching with amortized update
+time $f(\eps)\cdot \ORS(n)\cdot n^{o(1)}$, i.e.\ matching \cite{AKK25} up
+to $n^{o(1)}$ factors --- or refute the possibility in a meaningful
+restricted model. Graded sub-targets, each independently publishable:
+\begin{description}[itemsep=2pt]
+\item[D1 (maximal/half).] Deterministic fully dynamic \emph{maximal}
+matching in $n^{o(1)}$ (ultimately $\polylog$) update time; intermediate:
+beat the $\Otil(n^{8/9})$ of \cite{BBKS25}.
+\item[D2 (fractional).] Deterministic $(1+\eps)$-approximate
+\emph{fractional} matching in $\polylog$ update time (current det:\
+$(2+\eps)$ in $O(1)$ \cite{BCH17}).
+\item[D3 (size, better-than-2).] Derandomize the $\polylog$-time
+\textsc{Size}$(1/2+\Omega(1))$ algorithms \cite{Beh23,BKSW23,ABR24} ---
+any constant ratio $>1/2$ in deterministic $n^{o(1)}$ time.
+\item[D4 (ORS-parameterized).] The full OP-D statement above.
+\end{description}
+\end{problem}
+
+\begin{problem}[OP-L: deterministic lower bounds]\label{prob:OPL}
+Prove super-polylogarithmic (ideally polynomial) lower bounds on the
+update/query complexity of \emph{deterministic} fully dynamic matching
+algorithms, in a model strong enough to be meaningful, by extending or
+replacing the hidden-permutation/RS-reduction/$\OMv$ toolkits. Taxonomy
+of admissible answer types (used throughout WS-C):
+\begin{description}[itemsep=2pt]
+\item[L1.] Unconditional deterministic lower bounds in oracle/probe
+models (achievable now; see Lemma~\ref{lem:probe}).
+\item[L2.] Architectural barriers: theorems that the \emph{existing
+algorithmic frameworks} cannot be derandomized (achievable now; see
+Corollary~\ref{cor:barrier}).
+\item[L3.] Conditional bounds under a new deterministic hardness
+hypothesis (``Det-$\OMv$''), with deterministic reductions.
+\item[L4.] $\ORS/\RS$ \emph{density lower bounds} (constructions): these
+lower-bound the runtime of the leading algorithm family
+\cite{BG24,AKK25}, not of all algorithms --- a legitimate but weaker
+currency.
+\item[L5.] Extensions of permutation hiding \cite{AS23} to dynamic
+settings with \emph{bounded space or bounded recourse}; we prove below
+why some such restriction is forced.
+\end{description}
+\end{problem}
+
+\subsection{Why the existing techniques cannot be ``extended unchanged'':
+a no-go observation \statusP}
+
+\begin{observation}[Randomized-robust techniques cannot give
+deterministic-only polynomial bounds at ratios below $2-\sqrt2$]
+\label{obs:nogo}
+Call a lower-bound technique \emph{randomized-robust} if any bound it
+proves for deterministic algorithms it also proves (up to constants) for
+randomized ones --- as is the case for distributional/communication
+arguments via Yao's principle (hidden permutations \cite{AS23},
+RS-reduction streaming bounds, \cite{BRR24}) and for $\OMv$-style
+reductions, whose source hypothesis is itself about randomized
+algorithms \cite{HKNS15}. Then no randomized-robust technique can prove
+a polynomial update-time lower bound for deterministic
+\textsc{Size}$(2-\sqrt2-\delta)$ maintenance for any $\delta>0$:
+such a bound would equally apply to randomized algorithms and contradict
+the verified $\polylog$-time randomized algorithm of \cite{ABR24}.
+The same argument with \cite{BKSW23,Beh23} blocks all ratios in
+$(1/2,\,2-\sqrt2\,]$ and with \cite{BBKS25} blocks
+$\omega(n^{3/4+o(1)})$ bounds for adaptive randomized maximal matching.
+\end{observation}
+
+\noindent\emph{Consequences.} (i) A deterministic polynomial lower bound
+at ratio better than $1/2+\delta$ must use determinism \emph{essentially}
+--- e.g.\ adversary arguments that adapt to the algorithm's fixed
+behaviour, fooling-set/rank-style deterministic communication bounds, or
+a deterministic hardness hypothesis (L3). (ii) For ratios in
+$(2-\sqrt2,\,1)$, polynomial lower bounds are open \emph{even for
+randomized} algorithms (Liu \cite{Liu24} covers the $\eps\to0$ end only
+conditionally/by equivalence), so OP-L at those ratios subsumes a major
+open randomized question; the honest deterministic-specific opportunity
+is at ratios where randomized algorithms are already fast, i.e.\
+$[1/2,\,2-\sqrt2]$, and in the parameterized $\ORS$ regime.
+
+\subsection{A composition observation linking ORS to OMv \statusS}
+
+\begin{observation}[If ORS is sparse, dynamic approximate $\OMv$ is easy]
+\label{obs:compose}
+Suppose $\ORS(n)=n^{o(1)}$. Then \cite{AKK25} maintains \textsc{Edges}%
+$(\eps)$ in amortized $n^{o(1)}$ time; feeding this into Liu's
+equivalence \cite{Liu24} (algorithm direction) yields a nontrivial
+``dynamic approximate $\OMv$'' algorithm in the sense of \cite{Liu24}.
+Contrapositive: hardness of dynamic approximate $\OMv$ would imply
+$\ORS(n)=n^{\Omega(1)}$, i.e.\ a \emph{conditional combinatorial lower
+bound} for RS-type densities --- an unusual direction (complexity
+$\Rightarrow$ extremal combinatorics) worth a short note if the
+parameters compose. Status: sketch; the quantifier matching
+($\eps$ dependence, value-vs-edges, bipartiteness) is exactly Phase-0
+Task~\ref{task:verify}(c).
+\end{observation}
+
+\subsection{A proved deterministic/randomized separation in the probe
+model, and the architectural barrier \statusP}
+\label{sec:probelemma}
+
+The following is elementary but, to our knowledge after the June 2026
+verification pass, not stated in this form in the dynamic-matching
+literature; its role here is to convert the randomness audit of
+Section~\ref{sec:audit} into a theorem-grade barrier and to seed
+Workstream C. (Closest precedent: deterministic-vs-randomized gaps for
+\emph{learning} a hidden matching \cite{ABKRS04}, a harder
+reconstruction problem.)
+
+\begin{definition}[Adjacency-probe model]
+An algorithm accesses an unknown graph $G$ on vertex set $[n]$ only via
+probes $\textsc{Adj}(u,v)\in\{0,1\}$, chosen adaptively. Cost $=$ number
+of probes.
+\end{definition}
+
+\begin{lemma}[Quadratic deterministic probe bound for gap matching]
+\label{lem:probe}
+Any deterministic adaptive algorithm that distinguishes
+$\mm(G)=0$ from $\mm(G)\ge n/4$ must make more than
+$\binom{\lceil n/2\rceil}{2}-1 \;=\;\Omega(n^2)$ probes in the worst
+case. Consequently no deterministic algorithm with $o(n^2)$ probes can
+estimate $\mm(G)$ within additive $n/8$, nor within any multiplicative
+factor with additive slack $<n/8$. In contrast, the same gap problem is
+solvable by a randomized algorithm with $O(n\log n)$ probes (error
+probability $1/\poly(n)$), and $\Omega(n)$ probes are necessary for
+randomized algorithms; so the deterministic and randomized probe
+complexities of the gap problem are $\Theta(n^2)$ and
+$\widetilde{\Theta}(n)$ respectively --- a quadratic separation.
+\end{lemma}
+
+\begin{proof}
+\emph{Deterministic lower bound.} Run the deterministic algorithm
+against the adversary that answers $0$ to every probe. Since the
+algorithm is deterministic, the probe sequence and final output are
+determined; let $P$ be the set of probed pairs, and suppose
+$|P|\le\binom{\lceil n/2\rceil}{2}-1$. The empty graph $G_0$ is
+consistent with all answers and has $\mm(G_0)=0$. We claim the graph
+$H=K_n\setminus P$ (all unprobed pairs present) is also consistent ---
+trivially, every probed pair is a non-edge of $H$ --- and satisfies
+$\mm(H)\ge n/4$. Suppose not: $\mm(H)<n/4$. Taking both endpoints of a
+maximum matching of $H$ yields a vertex cover $C$ of $H$ with
+$|C|\le 2\mm(H)<n/2$. Then $U=V\setminus C$ has $|U|>n/2$, hence
+$|U|\ge\lceil n/2\rceil$ \emph{(integrality)}. No edge of $H$ lies
+inside $U$ (it would be uncovered), so \emph{every} pair inside $U$
+belongs to $P$, giving
+$|P|\ge\binom{|U|}{2}\ge\binom{\lceil n/2\rceil}{2}$, a contradiction.
+So both $G_0$ ($\mm=0$) and $H$ ($\mm\ge n/4$) are consistent with the
+transcript, and whatever the algorithm outputs is wrong for one of them.
+
+\emph{Randomized upper bound.} Under the promise, if $\mm(G)\ge n/4$
+then $G$ contains $\ge n/4$ pairwise-disjoint edges, so a uniformly
+random pair is an edge with probability at least
+$(n/4)/\binom{n}{2}\ge 1/(2n)$. Probing $cn\log n$ independent uniform
+pairs finds an edge with probability $1-n^{-\Omega(c)}$ if
+$\mm(G)\ge n/4$, and finds none if $\mm(G)=0$; output accordingly.
+(Distinguishing only requires certifying $\mm\ge1$ under the promise.)
+
+\emph{Randomized lower bound.} By Yao's principle take the distribution:
+with probability $1/2$ the empty graph; with probability $1/2$ a
+uniformly random matching of size $n/4$ (on a uniformly random
+$n/2$-subset). Any fixed probe is an edge with probability at most
+$(n/4)\cdot\frac{1}{\binom{n}{2}}\cdot\Theta(1)=O(1/n)$ under the second
+component; with $o(n)$ probes the transcript is all-zeros with
+probability $1-o(1)$ under \emph{both} components, forcing error
+$\ge 1/2-o(1)$.
+\end{proof}
+
+\begin{remark}
+The bound $\binom{\lceil n/2\rceil}{2}\approx n^2/8$ is tight up to the
+constant: probing all pairs costs $\binom n2$ and a slightly cleverer
+deterministic strategy can certify the gap after
+$\binom n2-\binom{\lceil n/2\rceil}{2}+O(n)$ probes
+\emph{(verify exact constant; minor)}. The lemma is robust to making
+the promise bipartite, to replacing $n/4$ by $\delta n$, and to allowing
+the algorithm to output ``a matching'' instead of a bit. \statusS\ for
+these routine variants.
+\end{remark}
+
+\begin{corollary}[Architectural barrier for derandomizing the
+$\polylog$/ORS pipelines]
+\label{cor:barrier}
+Fix any dynamic-matching algorithm whose update/query procedure invokes,
+as a black box, a matching-size gap estimator on an implicitly
+represented $N$-vertex graph accessed via adjacency probes --- as do
+\cite{BKSW23,Beh23,ABR24,BG24,AKK25} via RGMM-style sublinear estimation
+\cite{Beh21} (Section~\ref{sec:audit}). If the black box is replaced by
+any \emph{deterministic} probe algorithm with the same interface and
+guarantee, then by Lemma~\ref{lem:probe} some calls cost
+$\Omega(N^2)$ probes in the worst case, destroying the sublinear
+per-call budget that the frameworks' analyses rely on. Hence there is no
+deterministic \emph{drop-in} replacement at the oracle layer:
+derandomizing these pipelines requires re-architecting them around
+\emph{incrementally maintained deterministic summaries} rather than
+fresh per-call sublinear estimation. \statusP\ (as a statement about the
+probe interface; it is \emph{not} an unconditional lower bound for OP-D,
+and we will say so wherever it is used.)
+\end{corollary}
+
+\begin{remark}[Pseudorandomness does not contradict the barrier]
+A ``deterministic'' algorithm that fixes a PRG seed is still a
+deterministic algorithm, and Lemma~\ref{lem:probe} applies: the
+worst-case adversary may depend on the fixed seed. This cleanly explains
+why naive ``just plug in Nisan/$k$-wise ranks'' plans for RGMM fail at
+the model level, while leaving open the legitimate route of
+\emph{maintained} structures (WS-A3). \statusP
+\end{remark}
+
+\subsection{Consistency checks that calibrate difficulty \statusP}
+\label{sec:consistency}
+
+\begin{observation}[D2 implies beating the randomized frontier]
+\label{obs:d2hard}
+A deterministic $\polylog$-time $(1+\eps)$-approximate \emph{fractional}
+matching (target D2), combined with deterministic rounding
+\cite{BK21,ACCSW18}, would yield an integral
+$\approx\frac{2}{3}(1-O(\eps))$-approximation in $\polylog$ time
+(the $3/2$ integrality gap of the matching LP on general graphs is the
+bottleneck), i.e.\ ratio $\approx 0.66 > 2-\sqrt2\approx 0.586$ ---
+which would improve the best \emph{randomized} $\polylog$ ratio
+\cite{ABR24}. Hence D2 is at least as hard as a major open randomized
+question; the plan treats D2 as a stretch target and orders work
+accordingly. The same calibration shows $\polylog$-time EDCS
+maintenance is open even randomized (it would likewise beat
+\cite{ABR24}). \statusP\ (modulo the exact rounding loss; verify in
+Task~\ref{task:verify}(d).)
+\end{observation}
+
+\begin{observation}[What OP-L can and cannot mean, honestly]
+\label{obs:honest}
+``Polynomial communication lower bounds for deterministic dynamic
+algorithms,'' read literally as unconditional polynomial cell-probe
+bounds, is beyond current technology regardless of determinism
+(Section~\ref{sec:lb-landscape}); and in bounded-space dynamic streams
+the randomized bounds \cite{AKLY16} are already near-maximal, leaving no
+det/rand daylight. The defensible interpretations are exactly
+L1--L5 of Problem~\ref{prob:OPL}; the plan commits to L1+L2
+unconditionally (deliverable in months), pursues L3/L5 as research
+bets, and uses L4 as the bridge to Workstream B. \statusP\ (as an
+assessment, with the cited evidence.)
+\end{observation}
+
+% ===============================================================
+\section{Workstream A: derandomization (OP-D)}
+\label{sec:wsA}
+% ===============================================================
+
+Guiding principle from Corollary~\ref{cor:barrier}: do not derandomize
+the oracle calls; \emph{remove} them. Every task below replaces
+``fresh sublinear estimation'' by ``maintained deterministic structure''
+somewhere in the stack.
+
+\begin{task}[A0: randomness audit, formal version]\label{task:audit}
+Produce a table mapping every random choice in
+\cite{BKSW23,Beh23,ABR24,BG24,AKK25} to (i) the property it buys
+(correctness whp / adaptivity / amortization), (ii) the failure mode if
+fixed, (iii) whether limited independence suffices in the analysis.
+Output: 4--6 page technical note; feeds A1--A4 and is reusable as a
+related-work section. Effort: 2--3 weeks. Risk: low.
+\end{task}
+
+\begin{task}[A1: deterministic fractional route, graded]\label{task:frac}
+Current det.\ frontier: $(2+\eps)$-\textsc{Frac} in $O(1)$ \cite{BCH17};
+det.\ rounding exists \cite{BK21}. Subgoals, in order:
+(a) det.\ $(2-\delta_0)$-\textsc{Frac} in $\polylog$ for some explicit
+$\delta_0>0$ via primal-dual with deterministic level resets
+(\cite{BHI15,BHN16} machinery);
+(b) understand precisely why the \cite{BHN16} better-than-2 bipartite
+algorithm pays $n^{\gamma}$ --- is the bottleneck an estimation
+primitive (then Corollary~\ref{cor:barrier} predicts an obstruction) or
+amortized rebuilding (then deterministic multi-scale rebuilding may
+help)?
+(c) only then attempt D2, knowing Observation~\ref{obs:d2hard} prices
+it. Effort: 2--3 months for (a)--(b). Risk: medium.
+\end{task}
+
+\begin{task}[A2: EDCS route]\label{task:edcs}
+Edge-degree-constrained subgraphs give $(3/2+\eps)$ guarantees and are
+maintainable deterministically in $O(m^{1/4})$-type worst-case time
+\cite{GSSU22,BS16}. Subgoal: deterministic EDCS maintenance in
+$n^{1/2-\delta}$, attacking the rebuild bottleneck with deterministic
+expander-decomposition-style partitioning (as in \cite{BBKS25}, whose
+$n^{8/9}$ comes from exactly such tools). Calibration: full $\polylog$
+EDCS is open even randomized (Observation~\ref{obs:d2hard}), so the
+target is the exponent, not $\polylog$. Effort: 3 months. Risk:
+medium-high.
+\end{task}
+
+\begin{task}[A3: the crux --- rank-robust greedy / D1]\label{task:rank}
+Deterministic dynamic \emph{maximal} matching in $n^{o(1)}$ (D1) is the
+keystone: it is the minimal primitive whose randomized version
+($O(1)$ \cite{Sol16}) powers the kernels of the better-than-$1/2$
+pipelines, and \cite{BBKS25} just moved the det.\ bound to
+$\Otil(n^{8/9})$. Attack plan:
+(a) reprove \cite{BBKS25} from our audit template and isolate where
+$8/9$ arises (their tradeoff between deterministic expander
+decompositions and rebuild schedules);
+(b) formalize the obstruction: for any \emph{fixed} edge ranking
+$\pi$, a rank-aware adversary forces greedy-along-$\pi$ to suffer
+$\Omega(n)$ recourse per update --- prove this as a standalone lower
+bound for the natural ``fixed-rank greedy'' algorithm family
+\statusS;
+(c) circumvent (b) with multi-scale rank hierarchies (Bentley--Saxe-style
+deterministic rebuilding trading recourse for a $(1-1/\polylog)$
+approximation slack), targeting det.\ \emph{almost}-maximal
+($(1/2-o(1))$-approx) in $n^{3/4}$, then $n^{1/2+o(1)}$.
+Effort: the core 4--5 months of WS-A. Risk: high, with publishable
+intermediates at every exponent improvement and at the lower bound (b).
+\end{task}
+
+\begin{task}[A4: limits of pseudorandomness, short note]\label{task:prg}
+Determine the minimal independence/seed length under which the RGMM
+locality analyses \cite{Beh21} survive. \emph{Verified obstacle
+(v1.1)} \statusV{}: Beh21's Lemma~3.10 charges queries via the map
+$\phi(\pi,\vec P)$ that rotates ranks along query paths --- a
+bijection of the \emph{full} symmetric group; $k$-wise families are
+not closed under these rotations, so the $O(\bar d\log n)$ analysis
+does not transfer to limited independence as-is, while experiment E3
+of \texttt{audit\_lab} finds even $2$-wise ranks empirically
+matching full independence on oblivious instances --- a genuine
+analysis/experiment gap that this task should close in either
+direction. Combine with the
+Remark after Corollary~\ref{cor:barrier} into a note ``what
+pseudorandomness can and cannot do for dynamic matching.'' Effort: 3--4
+weeks, parallelizable. Risk: low (the note is valuable even if the
+answer is ``full independence needed'').
+\end{task}
+
+\begin{task}[A5: deterministic ORS-parameterized algorithm (D4)]
+\label{task:d4}
+Only after A3 yields a det.\ kernel primitive: re-derive the
+\cite{AKK25} epoch structure with deterministic peeling, replacing
+whp-union-bounds over epochs by potential functions. The honest
+expectation \statusC{} is det.\ \textsc{Edges}$(\eps)$ in
+$\Otil(\sqrt{n\cdot\ORS(n)})$-type time first (the \cite{BG24} shape),
+since \cite{AKK25}'s improvement leans hardest on random sampling.
+\emph{Refined target (v1.1)} \statusV{}: by the A0 audit, D4 reduces
+to derandomizing three modules; the only one not covered by
+Lemma~\ref{lem:probe} is \textsc{Det-Opportunistic-Matching} ---
+given adjacency access and the \emph{promise} $\mu(G[U])\ge\delta
+n$, deterministically output a $\gamma\delta n$-matching in
+$\Otil(m\,n^{O(\gamma)}/\Delta_{\mathrm{IN}}(M))$ time (AKK25
+Lemma~3.1 shape; $\Otil(n^{2+O(\gamma)}/d_{\mathrm{avg}})$ for the
+BG24 Lemma~7 shape). This is a promise-\emph{search} problem, outside
+the decision lower bound of Lemma~\ref{lem:probe}; the worst case
+$\Omega(m)$ is necessary even randomized \cite{ACK19}, so only the
+$\Delta_{\mathrm{IN}}$-adaptivity needs replication.
+\end{task}
+
+% ===============================================================
+\section{Workstream B: the combinatorics of \texorpdfstring{$\ORS/\RS$}{ORS/RS} density}
+\label{sec:wsB}
+% ===============================================================
+
+By \cite{AKK25}+\cite{Pra26}, \emph{any} progress on RS density at linear
+matching size transfers to the dynamic-matching frontier in both
+directions; this workstream is the highest-variance, highest-reward
+component, and also produces the experimental deliverables.
+
+\begin{task}[B0: the $(r,t)$ frontier table]\label{task:rs-table}
+Compile, with verbatim verified statements, the best known bounds on
+$\RS(n,r)$ and $\ORS(n,r)$ across regimes: $r=n/2-o(n)$ (constant $t$
+regimes), $r=\delta n$ (the \cite{FLNRRS02} $n^{1/\Theta(\log\log n)}$
+construction; the exact $\delta$-dependence used by \cite{AKK25}),
+$r=n^{1-o(1)}$ (Behrend regime, $t=n^{1-o(1)}$
+\cite{Beh46,RS78}), including corner-free-set improvements
+\cite{CFTZ22}. Identify \emph{the} regime that controls the
+\cite{AKK25} runtime (their $\eps$-dependence) --- this is the
+single most important verification in the plan. Output: survey
+section + machine-readable table. Effort: 3--4 weeks. Risk: low.
+\end{task}
+
+\begin{task}[B1: \texttt{ors\_lab} --- exact small-$n$ values]
+\label{task:orslab}
+Build a verified search package computing exact $\ORS_r(n)$ and
+$\RS_r(n)$ for $n\lesssim 40$:
+(a) two \emph{independent} encodings (SAT via incremental CNF with
+symmetry breaking; CP-SAT/ILP) cross-validated on all instances, per
+the standing methodology of this research program;
+(b) certificates: witness colourings checked by a separate
+$O(t\cdot n^2)$ verifier; UNSAT instances logged with solver proofs
+where available;
+(c) outputs: exact tables, extremal examples, and a targeted search for
+small-$n$ gaps $\ORS_r(n)>\RS_r(n)$ --- Pratt's equivalence is
+asymptotic, so small-$n$ separations are possible and would inform
+constructions (and make a nice figure regardless of sign). \statusC{}
+on finding separations. Effort: 4--6 weeks including writeup. Risk: low
+(the tables are a contribution per se; nearest analogue: exact
+small-$n$ extremal tables in the induced-matchings literature).
+\end{task}
+
+\begin{task}[B2: constructions]\label{task:construct}
+Lift recent corner-free/cap-set technology \cite{CFTZ22,BCCGNSU17} into
+the $r=\delta n$ regime: the concrete question is whether combinatorial
+degenerations improve the $n^{1/\Theta(\log\log n)}$ of \cite{FLNRRS02}
+for \emph{any} fixed $\delta>0$. Even a $\log$-factor-in-the-exponent
+improvement directly worsens the conditional optimality picture for
+\cite{AKK25} and is a standalone combinatorics paper. \statusC.
+Effort: open-ended; timebox 2 months with B1's extremal examples as
+seeds. Risk: high.
+\end{task}
+
+\begin{task}[B3: upper bounds where ordering should not help]
+\label{task:upper}
+The classical upper bounds for $\RS(n,\delta n)$ go through
+triangle-removal/regularity; the ordered variant breaks the symmetry
+those proofs use, which is exactly why \cite{BG24} had to ask the ORS
+question separately --- and \cite{Pra26} now supplies the reduction
+ORS$\to$RS, so the leverage point is: prove $\RS(n,\delta n)=n^{o(1)}$
+for $\delta$ below the current threshold, or a conditional/regime-%
+restricted version, then transfer. Any such bound \emph{upper-bounds the
+runtime of \cite{AKK25}} (an L4-type result: it makes the algorithm
+unconditionally fast, the optimistic resolution of the program). 
+Effort: research bet; timebox 6 weeks initial. Risk: high. \statusC
+\end{task}
+
+% ===============================================================
+\section{Workstream C: deterministic-specific lower bounds (OP-L)}
+\label{sec:wsC}
+% ===============================================================
+
+\begin{task}[C1: probe-model separations, paper-grade (L1)]
+\label{task:probe}
+(a) Write up Lemma~\ref{lem:probe} with the variants (bipartite,
+$\delta n$ gaps, output-a-matching), the tightness remark, and the
+\cite{ABKRS04} comparison. \emph{Prior-art scoping (v1.1)}
+\statusV{}: Assadi--Solomon \cite{AS19} (Thm.~3) already prove a
+deterministic $\Omega(n^2)$ vs.\ randomized $\Otil(n\beta)$
+separation for \emph{finding} a maximal matching on
+adjacency-\emph{array} graphs of neighborhood independence
+$\beta=2$, and \cite{ACK19} (Thm.~6) shows finding a maximal
+matching needs $\Omega(n^2)$ queries even randomized. The note's
+novelty claim must therefore rest on: the adjacency-\emph{matrix}
+probe model, the size-\emph{estimation} (decision) task --- where
+randomized is $\Otil(n)$ \cite{Beh21}, unlike finding --- the
+explicit clique-coverage threshold
+$\binom{\lceil n/2\rceil}{2}$, and the pipeline barrier of
+Corollary~\ref{cor:barrier}; cite both works prominently.
+(b) \emph{List/adjacency-array model:} the matrix-model adversary is too
+weak there (degrees reveal emptiness in $O(n)$), so plant the gap on top
+of a fixed background graph: target --- any deterministic algorithm
+achieving \textsc{Size}$(1/2+\delta)$ needs $n^{1+\Omega(1)}$
+(stretch: $\Omega_{\delta}(n^2)$) adjacency-list probes; method ---
+derandomized congestion adversaries adapted from the dummy-vertex
+machinery of \cite{BRR24}, replacing their distributional core by an
+explicit potential the adversary maximizes against the fixed algorithm.
+\statusS\
+(c) \emph{Exhaustive small-$n$ verification:} implement the adversary
+and verify the exact bound $\binom{\lceil n/2\rceil}{2}$ for
+$n\le 12$ by exhaustive simulation (ties into WS-D).
+Deliverable: a SOSA-style note ``Deterministic probe complexity of
+approximate matching size'' = L1+L2 packaged
+(Lemma~\ref{lem:probe} + Corollary~\ref{cor:barrier} + (b) if it
+lands). Effort: (a),(c) 3--4 weeks; (b) 2 months. Risk: low/medium.
+\end{task}
+
+\begin{task}[C2: dynamic permutation hiding under bounded recourse (L5)]
+\label{task:hiding}
+Observation~\ref{obs:honest} forces a resource restriction. Proposed
+model: \emph{bounded-recourse deterministic dynamic algorithms} --- the
+algorithm maintains an explicit matching and may change $\le \rho(n)$
+edges per update; lower-bound $\rho$ for approximation $1-\eps$ via a
+$k$-phase adaptive game in which the adversary inserts the layers of a
+permutation-hiding ORS gadget \cite{AS23} in an order chosen
+\emph{adaptively against the deterministic transcript} (this is the step
+Yao-based proofs cannot do, hence the deterministic-specific hope).
+Milestones: (a) formal model + trivial bounds; (b) recourse lower bound
+$\rho=\Omega(\text{poly}(\ORS\text{-density}))$ for fixed-rank greedy
+(connects to Task~\ref{task:rank}(b)); (c) general deterministic
+bounded-recourse bound \statusX. Honest wall, stated upfront: recourse
+bounds do not bound update \emph{time} for \textsc{Size} algorithms;
+they target \textsc{Edges}. Effort: 3 months. Risk: high.
+\end{task}
+
+\begin{task}[C3: a Det-$\OMv$ hypothesis (L3)]\label{task:detomv}
+(a) Formulate: ``no deterministic algorithm solves $\OMv$ in
+$n^{3-\delta}$ total time (with polynomial preprocessing)'' and the
+$\eps$-approximate variants matching \cite{Liu24}; first sanity step is
+a focused search for deterministic subcubic(-by-polynomial-factor) OMv
+--- note \cite{LW17} is randomized, and the deterministic status of even
+$n^3/2^{\Omega(\sqrt{\log n})}$ must be pinned down
+(Task~\ref{task:verify}(e)).
+(b) Check the \cite{HKNS15,Liu24} reductions are deterministic (they
+are reduction-side deterministic on inspection \statusS), so Det-$\OMv$
+transfers to deterministic dynamic lower bounds with the same
+quantitative shape.
+(c) Gadget program: strengthen specific reductions using
+\emph{deterministic} communication primitives (Equality/Greater-Than
+have $\Theta(n)$ deterministic but $O(\log n)$/$O(1)$ randomized
+communication) to get deterministic-only separations in intermediate
+communication-game models. \statusC\ Effort: (a),(b) 1 month; (c)
+open-ended, timebox 2 months. Risk: medium --- the failure mode
+``hypothesis is false'' is itself a (smaller) result.
+\end{task}
+
+% ===============================================================
+\section{Workstream D: engineering, verification, packaging}
+\label{sec:wsD}
+% ===============================================================
+
+Per the standing methodology of this research program (every paper ships
+runnable, cross-validated code):
+
+\begin{itemize}[itemsep=2pt]
+\item \texttt{ors\_lab/}: Task~\ref{task:orslab}; SAT (PySAT/kissat) and
+CP-SAT encoders, certificate verifier, table generator, plots.
+\item \texttt{probe\_lb/}: Task~\ref{task:probe}(c); adversary
+implementation, exhaustive verification harness $n\le 12$, and a fuzz
+harness pitting published randomized estimators against the adversary
+instances (illustrative figures for the note).
+\item \texttt{audit/}: machine-readable randomness-audit table
+(Task~\ref{task:audit}) rendered to LaTeX.
+\item Reproducibility: pinned environments, seeds, CI on small
+instances; independent re-implementation rule for any number that
+enters a paper.
+\end{itemize}
+Effort: woven into B1/C1; ${\sim}3$ weeks dedicated. Risk: low.
+
+% ===============================================================
+\section{Phase 0 verification, timeline, gates, fallbacks}
+\label{sec:timeline}
+% ===============================================================
+
+\begin{task}[V.1 (Phase 0): verification pass --- blocking]
+\label{task:verify}
+Before any proof is trusted: (a) exact \cite{AKK25} theorem statements
+($\eps$-dependence, the precise ORS regime $r(\eps)$, adaptive
+guarantee); (b) exact \cite{Pra26} parameter translation; (c) exact
+\cite{Liu24} equivalence quantifiers (value vs.\ witness vs.\ edges;
+bipartite only?) for Observation~\ref{obs:compose}; (d) exact rounding
+losses in \cite{BK21,ACCSW18} for Observation~\ref{obs:d2hard}; (e)
+deterministic status of subcubic-savings $\OMv$ (for
+Task~\ref{task:detomv}); (f) re-check all \statusM-tagged citations
+(page numbers, venues); (g) arXiv sweep for 2025--26 successors of
+\cite{BBKS25,ABR24,AKK25}. Output: corrected Section~\ref{sec:sota} +
+errata list. Effort: 2--3 weeks.
+\end{task}
+
+\subsection{Timeline (9--12 months) and decision gates}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Phase & Months & Content and exit gate\\
+\midrule
+M0 & 0--1 & Task~\ref{task:verify}; A0 audit started.
+\emph{Gate G0:} premises confirmed; else re-plan.\\
+M1 & 1--3 & C1(a,c) note drafted; B1 \texttt{ors\_lab} v1 ($n\le30$);
+A0 done. \emph{Gate G1:} if C1(b)\\
+ & & resists 4 focused weeks, pivot C1(b)$\to$C2 recourse model.\\
+M2 & 3--6 & A3 (a,b): \cite{BBKS25} reproved, fixed-rank recourse LB;
+B2 timebox. \emph{Gate G2:}\\
+ & & exponent progress on D1? If yes, A3(c) becomes the main paper
+track.\\
+M3 & 6--9 & A1/A2 in parallel with C3(a,b); B3 timebox.
+\emph{Gate G3:} pick main paper.\\
+M4 & 9--12 & Integration, writing, code release; submit main +
+note(s).\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Fallback publishable units (pre-committed)}
+\begin{enumerate}[itemsep=2pt]
+\item \emph{SOSA/short:} ``Deterministic probe complexity of approximate
+matching size and a barrier for derandomizing dynamic matching''
+(Lemma~\ref{lem:probe} + Corollary~\ref{cor:barrier} + variants) ---
+deliverable from M1 material alone.
+\item \emph{Combinatorics/experimental note:} exact small-$n$
+$\ORS/\RS$ tables with certificates and any ordered-vs-unordered
+small-$n$ separation (B1).
+\item \emph{Position/SoK only if both stall:} ``What would it take to
+derandomize dynamic matching?'' --- the audit + no-go observations +
+honest taxonomy; lowest value, explicitly last resort.
+\end{enumerate}
+
+% ===============================================================
+\section{Risk register}
+\label{sec:risks}
+% ===============================================================
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.30\textwidth}p{0.12\textwidth}p{0.46\textwidth}@{}}
+\toprule
+Risk & Likelihood / impact & Mitigation\\
+\midrule
+$\ORS/\RS$ density resolved by others (either direction) & low / very
+high & Monthly arXiv monitor (combinatorics + data structures); plan
+survives both outcomes: sparse $\Rightarrow$ B3/L4 framing, dense
+$\Rightarrow$ constructions paper.\\
+C1(b) list-model LB harder than hoped & medium / medium & Pre-planned
+pivot at G1 to the recourse model (C2), which reuses the machinery.\\
+Det-$\OMv$ false (det.\ subcubic-savings OMv exists) & medium / medium &
+Sanity-search first (C3(a)); a refutation is itself a small result and
+redirects C3(c).\\
+\cite{BBKS25} techniques extended below $n^{8/9}$ during the project &
+medium / medium & A3(a) keeps us conversant; exponent race has many
+rungs; recourse LB A3(b)/C2 is differentiated.\\
+A \statusM{} citation or a premise fails verification & low / high &
+Phase 0 is blocking by design; claim-status appendix localizes damage.\\
+Scope creep into the randomized-open zone
+(ratios $>2-\sqrt2$) & medium / low & Observation~\ref{obs:nogo}
+consulted at every gate; such targets require explicit re-scoping.\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ===============================================================
+\appendix
+\section{Randomness audit table (Task A0, v0.3)}
+\label{app:audit}
+Auto-generated from \texttt{audit\_lab/auditlib/audit\_table.py};
+regenerate with \texttt{run\_all.py}. Evidence tags E1--E5 refer to
+the experiments of the \texttt{audit\_lab} package; see the A0
+technical note for per-row discussion.
+
+\input{audit_table.tex}
+
+\section{Claim-status appendix}
+\label{app:claims}
+% ===============================================================
+
+Tag semantics: \statusV{} verified against the published source/arXiv in
+the June 2026 pass; \statusM{} canonical memory citation, re-check
+before submission; \statusP{} proven in this document; \statusS{} proof
+sketch, completion is a named task; \statusC{} conjecture/target;
+\statusX{} speculation.
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.62\textwidth}l l@{}}
+\toprule
+Claim & Status & Where\\
+\midrule
+\cite{BG24}: $(1-\eps)$-\textsc{Edges}, $O(\sqrt{n^{1+O(\eps)}\ORS(n)})$,
+whp, adaptive & \statusV & \S\ref{sec:correction}\\
+\cite{AKK25}: same guarantee, $n^{o(1)}\ORS(n)$; improvement is the
+\emph{update time} & \statusV & \S\ref{sec:correction}\\
+\cite{Pra26}: polynomial $\ORS \Rightarrow$ polynomial $\RS$ (linear
+$r$) & \statusV & \S\ref{sec:newdev}\\
+\cite{BBKS25}: det.\ maximal in $\Otil(n^{8/9})$; rand.\ adaptive
+$\Otil(n^{3/4})$ & \statusV & \S\ref{sec:newdev}\\
+\cite{ABR24}: \textsc{Size}$(2-\sqrt2-\eps)$ in $\polylog$, general
+graphs & \statusV & \S\ref{sec:ub-table}\\
+\cite{Liu24}: $\OMv$ equivalences; witness-vs-value distinction &
+\statusV & \S\ref{sec:lb-landscape}\\
+\cite{AS23}: pass LBs via permutation hiding on RS graphs & \statusV &
+\S\ref{sec:lb-landscape}\\
+\cite{BRR24}: randomized $\Omega(n^{2-\delta})$ list-queries for
+additive $\eps n$ & \statusV & \S\ref{sec:lb-landscape}\\
+$(r,t)$ frontier in the near-$n/2$ regime; \cite{ABKL23} pages;
+\cite{AKLY16,BGS11,BK21,GSSU22} details; cell-probe refs & \statusM &
+Task~\ref{task:verify}(f)\\
+Obs.~\ref{obs:nogo} (no-go for randomized-robust techniques) &
+\statusP & \S\ref{sec:problems}\\
+Lemma~\ref{lem:probe} (quadratic det.\ probe bound; $\Theta(n^2)$ vs
+$\widetilde\Theta(n)$) & \statusP & \S\ref{sec:probelemma}\\
+Cor.~\ref{cor:barrier} (no det.\ drop-in at the oracle layer;
+framework-relative) & \statusP & \S\ref{sec:probelemma}\\
+Obs.~\ref{obs:d2hard} (D2 $\Rightarrow$ beating \cite{ABR24}; modulo
+exact rounding loss) & \statusP/\statusS & \S\ref{sec:consistency}\\
+Obs.~\ref{obs:compose} (ORS sparse $\Rightarrow$ dyn.\ approx.\
+$\OMv$) & \statusS & Task~\ref{task:verify}(c)\\
+Fixed-rank greedy recourse LB; list-model det.\ LB & \statusS &
+Tasks~\ref{task:rank}(b), \ref{task:probe}(b)\\
+Small-$n$ $\ORS>\RS$ separations; B2/B3 outcomes; C2(c); C3(c) &
+\statusC/\statusX & WS-B, WS-C\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Notation}
+\label{app:notation}
+
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+$n,m$ & vertices / edges of the dynamic graph\\
+$\mm(G)$ & maximum matching size\\
+$\RS(n,r),\ \ORS(n,r)$ & max \#\ of (ordered-)induced edge-disjoint
+size-$r$ matchings (Def.~\ref{def:ors})\\
+$\RS(n),\ \ORS(n)$ & the $r=\Theta(n)$ regime, as in \cite{BG24}\\
+\textsc{Edges}/\textsc{Size}/\textsc{Frac}/\textsc{Witness-VC} &
+maintenance objectives (\S\ref{sec:models})\\
+$\OMv$ & online matrix-vector multiplication (conjecture of
+\cite{HKNS15})\\
+whp / adp / obl & with high probability / adaptive- / oblivious-%
+adversary\\
+$\Otil(\cdot)$ & suppresses $\polylog(n)$ factors\\
+D1--D4, L1--L5 & sub-targets of OP-D / answer types of OP-L
+(\S\ref{sec:problems})\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ===============================================================
+\begin{thebibliography}{99}
+\small
+
+\bibitem[ABKL23]{ABKL23}
+S.~Assadi, S.~Behnezhad, S.~Khanna, and H.~Li.
+On regularity lemma and barriers in streaming and dynamic matching.
+In \emph{Proc.\ 55th ACM Symposium on Theory of Computing (STOC)}, 2023.
+\statusM
+
+\bibitem[ABKRS04]{ABKRS04}
+N.~Alon, R.~Beigel, S.~Kasif, S.~Rudich, and B.~Sudakov.
+Learning a hidden matching.
+\emph{SIAM Journal on Computing}, 33(2):487--501, 2004.
+
+\bibitem[ABR24]{ABR24}
+A.~Azarmehr, S.~Behnezhad, and M.~Roghani.
+Fully dynamic matching: $(2-\sqrt2)$-approximation in polylog update
+time.
+In \emph{Proc.\ 35th ACM-SIAM Symposium on Discrete Algorithms (SODA)},
+pages 3040--3061, 2024. arXiv:2307.08772.
+
+\bibitem[ACCSW18]{ACCSW18}
+M.~Arar, S.~Chechik, S.~Cohen, C.~Stein, and D.~Wajc.
+Dynamic matching: reducing integral algorithms to approximately-maximal
+fractional algorithms.
+In \emph{Proc.\ 45th ICALP}, 2018. \statusM
+
+\bibitem[AKK25]{AKK25}
+S.~Assadi, S.~Khanna, and P.~Kiss.
+Improved bounds for fully dynamic matching via ordered
+Ruzsa--Szemer\'edi graphs.
+In \emph{Proc.\ 36th ACM-SIAM Symposium on Discrete Algorithms (SODA)},
+pages 2971--2990, 2025. arXiv:2406.13573.
+
+\bibitem[AKLY16]{AKLY16}
+S.~Assadi, S.~Khanna, Y.~Li, and G.~Yaroslavtsev.
+Maximum matchings in dynamic graph streams and the simultaneous
+communication model.
+In \emph{Proc.\ 27th ACM-SIAM Symposium on Discrete Algorithms (SODA)},
+2016. \statusM
+
+\bibitem[AS23]{AS23}
+S.~Assadi and J.~Sundaresan.
+Hidden permutations to the rescue: multi-pass semi-streaming lower
+bounds for approximate matchings.
+In \emph{Proc.\ 64th IEEE Symposium on Foundations of Computer Science
+(FOCS)}, pages 909--932, 2023. arXiv:2310.05728.
+
+\bibitem[BBKS25]{BBKS25}
+A.~Bernstein, S.~Bhattacharya, P.~Kiss, and T.~Saranurak.
+Deterministic dynamic maximal matching in sublinear update time.
+In \emph{Proc.\ 57th ACM Symposium on Theory of Computing (STOC)}, 2025.
+arXiv:2504.20780, DOI 10.1145/3717823.3718153.
+
+\bibitem[BCCGNSU17]{BCCGNSU17}
+J.~Blasiak, T.~Church, H.~Cohn, J.~A. Grochow, E.~Naslund, W.~F. Sawin,
+and C.~Umans.
+On cap sets and the group-theoretic approach to matrix multiplication.
+\emph{Discrete Analysis}, 2017.
+
+\bibitem[BCH17]{BCH17}
+S.~Bhattacharya, D.~Chakrabarty, and M.~Henzinger.
+Deterministic fully dynamic approximate vertex cover and fractional
+matching in $O(1)$ amortized update time.
+In \emph{Proc.\ 19th IPCO}, LNCS 10328, pages 86--98, 2017.
+
+\bibitem[Beh21]{Beh21}
+S.~Behnezhad.
+Time-optimal sublinear algorithms for matching and vertex cover.
+In \emph{Proc.\ 62nd IEEE FOCS}, pages 873--884, 2021.
+
+\bibitem[Beh23]{Beh23}
+S.~Behnezhad.
+Dynamic algorithms for maximum matching size.
+In \emph{Proc.\ 34th ACM-SIAM SODA}, pages 129--162, 2023.
+
+\bibitem[Beh46]{Beh46}
+F.~A. Behrend.
+On sets of integers which contain no three terms in arithmetical
+progression.
+\emph{Proc.\ National Academy of Sciences}, 32:331--332, 1946. \statusM
+
+\bibitem[BG24]{BG24}
+S.~Behnezhad and A.~Ghafari.
+Fully dynamic matching and ordered Ruzsa--Szemer\'edi graphs.
+In \emph{Proc.\ 65th IEEE Symposium on Foundations of Computer Science
+(FOCS)}, pages 314--327, 2024. arXiv:2404.06069.
+
+\bibitem[BGS11]{BGS11}
+S.~Baswana, M.~Gupta, and S.~Sen.
+Fully dynamic maximal matching in $O(\log n)$ update time.
+In \emph{Proc.\ 52nd IEEE FOCS}, pages 383--392, 2011; corrected
+version: \emph{SIAM J.\ Computing} 47(3):617--650, 2018. \statusM
+
+\bibitem[BHI15]{BHI15}
+S.~Bhattacharya, M.~Henzinger, and G.~F. Italiano.
+Deterministic fully dynamic data structures for vertex cover and
+matching.
+In \emph{Proc.\ 26th ACM-SIAM SODA}, pages 785--804, 2015.
+
+\bibitem[BHN16]{BHN16}
+S.~Bhattacharya, M.~Henzinger, and D.~Nanongkai.
+New deterministic approximation algorithms for fully dynamic matching.
+In \emph{Proc.\ 48th ACM STOC}, 2016. arXiv:1604.05765.
+
+\bibitem[BK21]{BK21}
+S.~Bhattacharya and P.~Kiss.
+Deterministic rounding of dynamic fractional matchings.
+In \emph{Proc.\ 48th ICALP}, 2021. \statusM
+
+\bibitem[BKS23]{BKS23}
+S.~Bhattacharya, P.~Kiss, and T.~Saranurak.
+Dynamic $(1+\eps)$-approximate matching size in truly sublinear update
+time.
+In \emph{Proc.\ 64th IEEE FOCS}, 2023. arXiv:2302.05030.
+
+\bibitem[BKSW23]{BKSW23}
+S.~Bhattacharya, P.~Kiss, T.~Saranurak, and D.~Wajc.
+Dynamic matching with better-than-2 approximation in polylogarithmic
+update time.
+In \emph{Proc.\ 34th ACM-SIAM SODA}, 2023; \emph{J.\ ACM}, DOI
+10.1145/3679009. arXiv:2207.07438.
+
+\bibitem[BLM20]{BLM20}
+S.~Behnezhad, J.~\L{}\k{a}cki, and V.~Mirrokni.
+Fully dynamic matching: beating 2-approximation in $\Delta^{\eps}$
+update time.
+In \emph{Proc.\ 31st ACM-SIAM SODA}, pages 2492--2508, 2020.
+
+\bibitem[BRR24]{BRR24}
+S.~Behnezhad, M.~Roghani, and A.~Rubinstein.
+Approximating maximum matching requires almost quadratic time.
+In \emph{Proc.\ 56th ACM STOC}, 2024. arXiv:2406.08595.
+
+\bibitem[BRRS23]{BRRS23}
+S.~Behnezhad, M.~Roghani, A.~Rubinstein, and A.~Saberi.
+Beating greedy matching in sublinear time.
+In \emph{Proc.\ 34th ACM-SIAM SODA}, 2023. arXiv:2206.13057.
+
+\bibitem[BS16]{BS16}
+A.~Bernstein and C.~Stein.
+Faster fully dynamic matchings with small approximation ratios.
+In \emph{Proc.\ 27th ACM-SIAM SODA}, pages 692--711, 2016.
+
+\bibitem[CFTZ22]{CFTZ22}
+M.~Christandl, O.~Fawzi, H.~Ta, and J.~Zuiddam.
+Larger corner-free sets from combinatorial degenerations.
+In \emph{Proc.\ 13th ITCS}, 2022. \statusM
+
+\bibitem[CGL15]{CGL15}
+R.~Clifford, A.~Gr{\o}nlund, and K.~G. Larsen.
+New unconditional hardness results for dynamic and online problems.
+In \emph{Proc.\ 56th IEEE FOCS}, 2015. \statusM
+
+\bibitem[FLNRRS02]{FLNRRS02}
+E.~Fischer, E.~Lehman, I.~Newman, S.~Raskhodnikova, R.~Rubinfeld, and
+A.~Samorodnitsky.
+Monotonicity testing over general poset domains.
+In \emph{Proc.\ 34th ACM STOC}, 2002. \statusM\ (attribution of the
+$\ORS(\Theta(n))\ge n^{1/\Theta(\log\log n)}$ construction per
+\cite{BG24}.)
+
+\bibitem[GP13]{GP13}
+M.~Gupta and R.~Peng.
+Fully dynamic $(1+\eps)$-approximate matchings.
+In \emph{Proc.\ 54th IEEE FOCS}, pages 548--557, 2013.
+
+\bibitem[GSSU22]{GSSU22}
+F.~Grandoni, C.~Schwiegelshohn, S.~Solomon, and A.~Uzrad.
+Maintaining an EDCS in general graphs: simpler, density-sensitive and
+with worst-case time bounds.
+In \emph{Proc.\ 5th SIAM SOSA}, pages 12--23, 2022. \statusM
+
+\bibitem[HKNS15]{HKNS15}
+M.~Henzinger, S.~Krinninger, D.~Nanongkai, and T.~Saranurak.
+Unifying and strengthening hardness for dynamic problems via the online
+matrix-vector multiplication conjecture.
+In \emph{Proc.\ 47th ACM STOC}, pages 21--30, 2015.
+
+\bibitem[Kis22]{Kis22}
+P.~Kiss.
+Improving update times of dynamic matching algorithms from amortized to
+worst case.
+In \emph{Proc.\ 13th ITCS}, 94:1--94:21, 2022.
+
+\bibitem[Lar12]{Lar12}
+K.~G. Larsen.
+The cell probe complexity of dynamic range counting.
+In \emph{Proc.\ 44th ACM STOC}, 2012. \statusM
+
+\bibitem[Liu24]{Liu24}
+Y.~P. Liu.
+On approximate fully-dynamic matching and online matrix-vector
+multiplication.
+In \emph{Proc.\ 65th IEEE FOCS}, pages 228--243, 2024. arXiv:2403.02582.
+(General-graph extension: arXiv:2503.01147.)
+
+\bibitem[LW17]{LW17}
+K.~G. Larsen and R.~R. Williams.
+Faster online matrix-vector multiplication.
+In \emph{Proc.\ 28th ACM-SIAM SODA}, pages 2182--2189, 2017.
+
+\bibitem[NS13]{NS13}
+O.~Neiman and S.~Solomon.
+Simple deterministic algorithms for fully dynamic maximal matching.
+In \emph{Proc.\ 45th ACM STOC}, 2013. arXiv:1207.1277.
+
+\bibitem[OR10]{OR10}
+K.~Onak and R.~Rubinfeld.
+Maintaining a large matching and a small vertex cover.
+In \emph{Proc.\ 42nd ACM STOC}, 2010. \statusM
+
+\bibitem[Pat10]{Pat10}
+M.~P\u{a}tra\c{s}cu.
+Towards polynomial lower bounds for dynamic problems.
+In \emph{Proc.\ 42nd ACM STOC}, 2010. \statusM
+
+\bibitem[Pra26]{Pra26}
+K.~Pratt.
+A note on ordered Ruzsa--Szemer\'edi graphs.
+In \emph{Proc.\ 9th SIAM Symposium on Simplicity in Algorithms (SOSA)},
+2026. arXiv:2502.02455, DOI 10.1137/1.9781611978964.27.
+
+\bibitem[RS78]{RS78}
+I.~Z. Ruzsa and E.~Szemer\'edi.
+Triple systems with no six points carrying three triangles.
+In \emph{Combinatorics (Keszthely, 1976)}, Coll.\ Math.\ Soc.\ J.\
+Bolyai 18, pages 939--945, 1978.
+
+\bibitem[Sol16]{Sol16}
+S.~Solomon.
+Fully dynamic maximal matching in constant update time.
+In \emph{Proc.\ 57th IEEE FOCS}, pages 325--334, 2016.
+
+\bibitem[Waj20]{Waj20}
+D.~Wajc.
+Rounding dynamic matchings against an adaptive adversary.
+In \emph{Proc.\ 52nd ACM STOC}, 2020. \statusM
+
+\bibitem{AS19} S.~Assadi, S.~Solomon. When algorithms for maximal
+independent set and maximal matching run in sublinear time. ICALP
+2019, 17:1--17:17. (Thm.~3: deterministic $\Omega(n^2)$ for finding a
+maximal matching at neighborhood independence $\beta=2$.)
+\bibitem{ACK19} S.~Assadi, Y.~Chen, S.~Khanna. Sublinear algorithms
+for $(\Delta+1)$ vertex coloring. SODA 2019, pp.~767--786.
+(Thm.~6: finding a maximal matching needs $\Omega(n^2)$ queries,
+randomized.)
+\end{thebibliography}
+
+\end{document}
